@@ -1,0 +1,90 @@
+{
+  "kind": "build_request",
+  "title": "Fix audio routing: keep WebAudio frequencies separate from Android res/raw sounds",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Update the unified audio routing so that frequency tones (the original/legacy frequencies) are always played via Web Audio oscillator playback and are never delegated to Android `res/raw` playback, even when `window.AndroidAudio` exists.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "bak senin eklediğin sesler ayrı raw dosyasından çalınması gereken sesler ayrı bu ikisini birbirine karıştırma yeninden eski frekanslar doğru düzgün çalsın"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On Android/WebView with `window.AndroidAudio` available, tapping any item in the Frequencies list (e.g., 432 Hz) produces audible output using Web Audio (oscillator-based tone).",
+        "Frequencies do not call `window.AndroidAudio.playSound(...)` at all (verify via logs or by code path)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Update the unified audio routing so that non-frequency sounds (kids sleep sounds and peaceful sounds) use Android native playback (`window.AndroidAudio.playSound(soundId)`) when available, and do not attempt Web Audio oscillator playback for these sound IDs.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "senin eklediğin sesler ayrı raw dosyasından çalınması gereken sesler ayrı bu ikisini birbirine karıştırma"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On Android/WebView with `window.AndroidAudio` available, tapping a kids sleep sound or peaceful sound triggers `window.AndroidAudio.playSound(cleanSoundId)` with no file extension.",
+        "When playing a non-frequency sound, the app does not run the oscillator-based fallback logic that parses `freq-###`."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Connect the MainPlayer state to a single shared audio manager instance so that play/pause/resume/stop and track changes in `useMainPlayer` consistently start/stop the actual audio output (instead of each component creating its own `useUnifiedAudioManager()` instance).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "yeninden eski frekanslar doğru düzgün çalsın"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When `player.playFrequency(hz)` is called, the audio manager starts playing that frequency; when `player.stop()` is called, audio stops.",
+        "MainPlayer pause/resume buttons affect audible playback (pause stops audio; resume restarts the currently selected frequency/sound).",
+        "Audio intensity used for visualizations comes from the same single active audio manager instance that is producing sound."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add clear developer-facing console logs for the routing decision (frequency via WebAudio vs sound via Android native) to make it easy to verify that frequencies and `res/raw` sounds are not being mixed.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "bu ikisini birbirine karıştırma"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When playing a frequency, logs indicate Web Audio oscillator path and do not indicate Android native path.",
+        "When playing a non-frequency sound on Android, logs indicate Android native path and do not indicate oscillator parsing."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify files under `frontend/src/components/ui` (compose them as-is).",
+    "Do not edit immutable hook files listed in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`).",
+    "Backend must remain single-actor; no backend work is required for this audio routing fix."
+  ],
+  "nonGoals": [
+    "Do not add new sound content catalogs or new audio files.",
+    "Do not implement new third-party audio libraries or external services.",
+    "Do not redesign the UI beyond what is necessary to restore correct playback behavior."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

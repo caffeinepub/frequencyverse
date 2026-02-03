@@ -1,0 +1,169 @@
+import { useEffect } from 'react';
+import { X } from 'lucide-react';
+import { useVisualTheme, VisualTheme } from '../hooks/useTheme';
+import { useLanguage } from '../hooks/useLanguage';
+
+interface ThemeSelectorPopupProps {
+  onClose: () => void;
+}
+
+const themes: { value: VisualTheme; label: string }[] = [
+  { value: 'aurora-glow', label: 'Aurora Glow' },
+  { value: 'celestial-calm', label: 'Celestial Calm' },
+  { value: 'sacred-lotus', label: 'Sacred Lotus' },
+  { value: 'ethereal-waves', label: 'Ethereal Waves' },
+  { value: 'zen-garden', label: 'Zen Garden' },
+];
+
+export default function ThemeSelectorPopup({ onClose }: ThemeSelectorPopupProps) {
+  const { theme, setTheme } = useVisualTheme();
+  const { t } = useLanguage();
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
+  const getThemeColors = () => {
+    switch (theme) {
+      case 'aurora-glow':
+        return {
+          glow: 'shadow-[0_0_30px_rgba(168,85,247,0.5)]',
+          border: 'border-purple-400/40',
+          text: 'text-purple-200',
+          hoverBg: 'hover:bg-purple-500/30',
+          activeBg: 'bg-purple-500/40',
+        };
+      case 'celestial-calm':
+        return {
+          glow: 'shadow-[0_0_30px_rgba(59,130,246,0.5)]',
+          border: 'border-blue-400/40',
+          text: 'text-blue-200',
+          hoverBg: 'hover:bg-blue-500/30',
+          activeBg: 'bg-blue-500/40',
+        };
+      case 'sacred-lotus':
+        return {
+          glow: 'shadow-[0_0_30px_rgba(236,72,153,0.5)]',
+          border: 'border-pink-400/40',
+          text: 'text-pink-200',
+          hoverBg: 'hover:bg-pink-500/30',
+          activeBg: 'bg-pink-500/40',
+        };
+      case 'ethereal-waves':
+        return {
+          glow: 'shadow-[0_0_30px_rgba(34,211,238,0.5)]',
+          border: 'border-cyan-400/40',
+          text: 'text-cyan-200',
+          hoverBg: 'hover:bg-cyan-500/30',
+          activeBg: 'bg-cyan-500/40',
+        };
+      case 'zen-garden':
+        return {
+          glow: 'shadow-[0_0_30px_rgba(34,197,94,0.5)]',
+          border: 'border-green-400/40',
+          text: 'text-green-200',
+          hoverBg: 'hover:bg-green-500/30',
+          activeBg: 'bg-green-500/40',
+        };
+      default:
+        return {
+          glow: 'shadow-[0_0_30px_rgba(168,85,247,0.5)]',
+          border: 'border-purple-400/40',
+          text: 'text-purple-200',
+          hoverBg: 'hover:bg-purple-500/30',
+          activeBg: 'bg-purple-500/40',
+        };
+    }
+  };
+
+  const colors = getThemeColors();
+
+  const getTitle = (): string => {
+    const titles: Record<string, string> = {
+      tr: 'Tema Seçin',
+      en: 'Select Theme',
+      es: 'Seleccionar Tema',
+      fr: 'Sélectionner le Thème',
+      de: 'Thema Auswählen',
+      it: 'Seleziona Tema',
+      ru: 'Выберите Тему',
+      ar: 'اختر السمة',
+      ja: 'テーマを選択',
+      zh: '选择主题',
+      pt: 'Selecionar Tema',
+    };
+    
+    const lang = t.subtitle.includes('frekans') ? 'tr' : 
+                 t.subtitle.includes('Discover') ? 'en' :
+                 t.subtitle.includes('Descubre') ? 'es' :
+                 t.subtitle.includes('Découvrez') ? 'fr' :
+                 t.subtitle.includes('Entdecken') ? 'de' :
+                 t.subtitle.includes('Scopri') ? 'it' :
+                 t.subtitle.includes('Откройте') ? 'ru' :
+                 t.subtitle.includes('اكتشف') ? 'ar' :
+                 t.subtitle.includes('発見') ? 'ja' :
+                 t.subtitle.includes('发现') ? 'zh' :
+                 t.subtitle.includes('Descubra') ? 'pt' : 'tr';
+    
+    return titles[lang] || 'Tema Seçin';
+  };
+
+  const handleSelect = (value: VisualTheme) => {
+    setTheme(value);
+    onClose();
+  };
+
+  return (
+    <>
+      <div 
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 animate-in fade-in duration-200"
+        onClick={onClose}
+      />
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md animate-in zoom-in-95 duration-200">
+        <div className={`
+          backdrop-blur-md bg-black/80 border ${colors.border}
+          ${colors.glow} rounded-xl p-6 mx-4
+        `}>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className={`text-xl font-bold ${colors.text}`}>
+              {getTitle()}
+            </h2>
+            <button
+              onClick={onClose}
+              className={`
+                p-2 rounded-lg ${colors.text} ${colors.hoverBg}
+                transition-colors duration-200
+              `}
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-3">
+            {themes.map((themeOption) => (
+              <button
+                key={themeOption.value}
+                onClick={() => handleSelect(themeOption.value)}
+                className={`
+                  p-4 rounded-lg border ${colors.border}
+                  ${theme === themeOption.value ? colors.activeBg : 'bg-black/20'}
+                  ${colors.text} ${colors.hoverBg}
+                  transition-all duration-200
+                  text-left font-medium
+                `}
+              >
+                {themeOption.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

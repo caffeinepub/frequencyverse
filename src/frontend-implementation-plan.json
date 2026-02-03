@@ -1,0 +1,103 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Fix unified audio routing and ensure single shared audio manager",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Ensure frequency tones always use Web Audio oscillator playback and never Android native res/raw playback.",
+      "acceptanceCriteria": [
+        "On Android/WebView with `window.AndroidAudio` available, tapping any item in the Frequencies list (e.g., 432 Hz) produces audible output using Web Audio (oscillator-based tone).",
+        "Frequencies do not call `window.AndroidAudio.playSound(...)` at all (verify via logs or by code path)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useUnifiedAudioManager.ts",
+          "operation": "modify",
+          "description": "Refactor unified audio manager API to provide an explicit frequency-playback function that always uses Web Audio oscillator (bypassing any `window.AndroidAudio` delegation), and ensure frequency playback never calls Android native playback even when available."
+        },
+        {
+          "path": "frontend/src/hooks/useMainPlayerAudioSync.tsx",
+          "operation": "create",
+          "description": "Create a small sync/bridge hook that translates MainPlayer frequency state changes into calls to the shared audio manager's frequency oscillator playback (and not Android native)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Ensure non-frequency sounds use Android native playback when available and never use oscillator parsing/fallback for these sound IDs.",
+      "acceptanceCriteria": [
+        "On Android/WebView with `window.AndroidAudio` available, tapping a kids sleep sound or peaceful sound triggers `window.AndroidAudio.playSound(cleanSoundId)` with no file extension.",
+        "When playing a non-frequency sound, the app does not run the oscillator-based fallback logic that parses `freq-###`."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useUnifiedAudioManager.ts",
+          "operation": "modify",
+          "description": "Update routing so non-frequency sound playback uses Android native `window.AndroidAudio.playSound(cleanSoundId)` when available, strips file extensions before calling native playback, and does not attempt oscillator-based fallback or any `freq-###` parsing for non-frequency sounds."
+        },
+        {
+          "path": "frontend/src/hooks/useMainPlayerAudioSync.tsx",
+          "operation": "modify",
+          "description": "Ensure the MainPlayer-to-audio-manager sync hook routes `currentSoundId` playback through the audio manager's non-frequency sound path (Android native when available) and never triggers oscillator parsing for these IDs."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Use a single shared audio manager instance across the app and synchronize it with MainPlayer state for consistent start/stop/pause/resume and shared intensity.",
+      "acceptanceCriteria": [
+        "When `player.playFrequency(hz)` is called, the audio manager starts playing that frequency; when `player.stop()` is called, audio stops.",
+        "MainPlayer pause/resume buttons affect audible playback (pause stops audio; resume restarts the currently selected frequency/sound).",
+        "Audio intensity used for visualizations comes from the same single active audio manager instance that is producing sound."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/UnifiedAudioManagerContext.tsx",
+          "operation": "create",
+          "description": "Create a React context/provider that owns exactly one `useUnifiedAudioManager()` instance and exposes a `useUnifiedAudioManagerContext()` hook so all consumers share the same playback + intensity source."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire the new UnifiedAudioManager provider at the top-level so AppContent, ThemeBackground, UnifiedFrequencyList, and any visualization consumers read intensity/playback state from the same shared audio manager instance (no per-component `useUnifiedAudioManager()` instances)."
+        },
+        {
+          "path": "frontend/src/components/ThemeBackground.tsx",
+          "operation": "modify",
+          "description": "Replace direct `useUnifiedAudioManager()` usage with the shared context hook so intensity reacts to the same active audio manager instance that produces sound."
+        },
+        {
+          "path": "frontend/src/components/UnifiedFrequencyList.tsx",
+          "operation": "modify",
+          "description": "Replace direct `useUnifiedAudioManager()` usage with the shared context hook so the intensity passed to full-screen visualization matches the single active audio manager instance."
+        },
+        {
+          "path": "frontend/src/hooks/useMainPlayerAudioSync.tsx",
+          "operation": "modify",
+          "description": "Finalize the bridge hook to synchronize MainPlayer state (playFrequency/playSound/pause/resume/stop/track changes) to actual audio manager playback, ensuring audible output matches the UI state and queue navigation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Add clear developer-facing console logs that show the routing choice (frequency via WebAudio vs sound via Android native) to verify paths are not mixed.",
+      "acceptanceCriteria": [
+        "When playing a frequency, logs indicate Web Audio oscillator path and do not indicate Android native path.",
+        "When playing a non-frequency sound on Android, logs indicate Android native path and do not indicate oscillator parsing."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useUnifiedAudioManager.ts",
+          "operation": "modify",
+          "description": "Add concise, consistent console logs for routing decisions: (1) frequency playback explicitly logged as Web Audio oscillator-only, (2) non-frequency sound playback explicitly logged as Android native when available (with cleanSoundId), and (3) ensure logs make it obvious that the opposite path was not taken."
+        },
+        {
+          "path": "frontend/src/hooks/useMainPlayerAudioSync.tsx",
+          "operation": "modify",
+          "description": "Add developer-facing logs at the bridge level to confirm what the MainPlayer requested (frequency vs sound, play vs pause/stop, track change) and that the request is being forwarded to the shared audio manager with the intended routing."
+        }
+      ]
+    }
+  ]
+}

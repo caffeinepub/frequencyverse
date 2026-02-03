@@ -1,0 +1,250 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 4,
+  "summary": "FrequencyVerse is a client-first, React + TypeScript meditation/relaxation web app centered on playing healing tone frequencies and curated sound sets (kids sleep sounds and peaceful ambient sounds). It provides a unified playback state (single item, session, or playlist), a mobile-optimized main player UI, mood-based recommendations, themeable animated backgrounds, and a full-screen canvas visualization driven by audio intensity. The app supports 11 languages with extensive UI localization and persists user preferences (language, theme, fullscreen preference, background ambiance selection, and audio activation) in localStorage. A minimal Internet Computer (DFINITY) integration exists for Internet Identity authentication and actor creation, plus a separate Motoko blob-storage authorization/refill mixin module, though the main backend canister is intentionally empty.",
+  "existing_features": [
+    {
+      "id": "IF-1",
+      "title": "Unified main playback state (frequency/sound, queue, modes)",
+      "synonyms": [
+        "MainPlayer context",
+        "Unified player state",
+        "Playback state machine"
+      ],
+      "description": "Provides a MainPlayerProvider context that tracks currentFrequency/currentSoundId, playing/paused flags, playMode (single/session/playlist), repeat/shuffle flags, a typed queue, currentIndex, and duration-related fields. Exposes controls for playFrequency, playSound, playQueue, pause/resume/stop, next/previous, shuffle/repeat toggles, and index updates.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-2",
+      "title": "Sleep timer / auto-stop after selected duration",
+      "synonyms": [
+        "Duration-based stop",
+        "Auto stop timer"
+      ],
+      "description": "MainPlayerProvider starts an internal timer when playback begins and fully resets playback state when selectedDuration elapses, stopping all audio state and clearing queue/session info.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-3",
+      "title": "Mobile-optimized main player UI with playback controls",
+      "synonyms": [
+        "Bottom player bar",
+        "Transport controls"
+      ],
+      "description": "MainPlayer component renders a fixed bottom player with play/pause, next/previous, repeat, shuffle, duration selector button, playlist button, and fullscreen visualization toggle, with theme-adaptive styling and touch-friendly sizing.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-4",
+      "title": "Duration selector popup (1–180 minutes)",
+      "synonyms": [
+        "Sleep timer picker",
+        "Duration modal"
+      ],
+      "description": "DurationSelectorPopup provides a slider-based UI to select playback duration in minutes, with click-outside and ESC-to-close behavior, and theme-adaptive styling.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-5",
+      "title": "Playlist management (add/remove, reorder, shuffle, clear) and playlist popup UI",
+      "synonyms": [
+        "Queue editor",
+        "Playlist modal"
+      ],
+      "description": "useUnifiedPlaylistManager enables building a mixed queue of frequency and sound items, prevents duplicates, supports start/stop/pause/resume timing logic for playlist playback, and integrates with MainPlayer queue. PlaylistPopup displays the queue, allows play item, remove, move up/down, shuffle, start, and clear actions.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-6",
+      "title": "Guided meditation sessions with predefined sequences",
+      "synonyms": [
+        "Session mode",
+        "Meditation session manager"
+      ],
+      "description": "useUnifiedSessionManager defines predefined sessions (healing, chakra, deep meditation, quick relax) and manages session lifecycle (start/pause/resume/stop) by driving the MainPlayer queue/index progression over the selected duration. UnifiedSessionPanel displays available sessions and active session progress with controls.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-7",
+      "title": "Mood Space with mood selection and personalized recommendations",
+      "synonyms": [
+        "Mood-based suggestions",
+        "Personalized recommendations"
+      ],
+      "description": "MoodSpace lets users select from seven moods and shows RecommendedSounds driven by moodRecommendations. Recommendations support play, add-to-playlist (with temporary check feedback), and start-session actions (for frequency items).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-8",
+      "title": "Content catalogs for frequencies, kids sleep sounds, and peaceful sounds",
+      "synonyms": [
+        "Sound catalog",
+        "Sound datasets"
+      ],
+      "description": "Defines curated sets: 11 healing frequencies (111–963 Hz) with localized descriptions, kids sleep sounds grouped by category, and peaceful ambient sounds. These are presented in UnifiedFrequencyList using FrequencyCard, KidsSleepSoundCard, and PeacefulSoundCard components, each supporting play/stop and add-to-playlist actions.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-9",
+      "title": "Full-screen mystical sound visualization (canvas)",
+      "synonyms": [
+        "Fullscreen visualization",
+        "SoundWaveVisualization"
+      ],
+      "description": "SoundWaveVisualization renders a full-screen canvas animation with frequency-specific visual presets and intensity-based pulsing. Supports tap/click to exit and ESC key to close. Visualization fullscreen state is persisted via VisualizationProvider.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-10",
+      "title": "Theme system with animated backgrounds and theme-aware UI styling",
+      "synonyms": [
+        "Visual themes",
+        "Mystical themes"
+      ],
+      "description": "VisualThemeProvider supports five themes (aurora-glow, celestial-calm, sacred-lotus, ethereal-waves, zen-garden) persisted to localStorage. ThemeBackground applies theme-specific background images, animated gradients, and an intensity-driven pulse overlay.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-11",
+      "title": "Language system with 11-language localization and language selector popup",
+      "synonyms": [
+        "i18n",
+        "Localization"
+      ],
+      "description": "LanguageProvider manages the active language (tr/en/es/fr/de/it/ru/ar/ja/zh/pt) and exposes a comprehensive translation object. LanguageSelectorPopup provides a theme-styled UI to select language with viewport-aware positioning and localStorage persistence.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-12",
+      "title": "Background ambiance system with automatic fade in/out around main playback",
+      "synonyms": [
+        "Ambient background sounds",
+        "Background sound bed"
+      ],
+      "description": "BackgroundAmbianceProvider manages a selected ambiance type persisted in localStorage and uses HTMLAudioElement + Web Audio gain node to loop and fade ambiance in when the main player is idle and fade it out when main playback starts. BackgroundAmbianceSelectorPopup provides the UI selection modal.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-13",
+      "title": "Audio activation/unlock flow for mobile browsers",
+      "synonyms": [
+        "Web Audio unlock",
+        "First-interaction activation"
+      ],
+      "description": "AudioActivationProvider listens for the first touch/click to create/resume an AudioContext and play a near-silent oscillator, enabling subsequent playback; shows a brief ripple indicator at the interaction location and persists activation state in localStorage.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-14",
+      "title": "Unified audio manager with Android native delegation and Web Audio fallback",
+      "synonyms": [
+        "Audio backend abstraction",
+        "Native audio bridge"
+      ],
+      "description": "useUnifiedAudioManager provides play/stop/volume/intensity tracking. It attempts to use window.AndroidAudio.playSound for native Android playback, and falls back to Web Audio oscillator-based playback while also computing an analyser-driven intensity value for visuals.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-15",
+      "title": "Internet Identity authentication context and backend actor creation",
+      "synonyms": [
+        "DFINITY auth",
+        "ICP actor hook"
+      ],
+      "description": "InternetIdentityProvider wraps AuthClient login/logout and persists/loads identities. useActor creates an anonymous or authenticated canister actor via createActorWithConfig and invalidates/refetches dependent queries when identity changes.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-16",
+      "title": "Motoko blob-storage authorization and cycles refill utilities",
+      "synonyms": [
+        "Storage mixin",
+        "Blob GC helpers"
+      ],
+      "description": "backend/blob-storage includes Storage.mo and Mixin.mo implementing authorized gateway principal updates, dead blob inspection/pruning, and cashier refill logic using cycles. backend/main.mo is intentionally empty for this app.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-unified-audio-routing-so-that-frequency-tones-the-original-legacy-frequencies-are-always-played-via-web-audio-oscillator-playback-and-are-never-delegated-to-android-res-raw-playback-even-when-window-androidaudio-exists",
+      "title": "Update the unified audio routing so that frequency tones (the original/legacy frequencies) are always played via Web Audio oscillator playback and are never delegated to Android `res/raw` playback, even when `window.AndroidAudio` exists.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-unified-audio-routing-so-that-non-frequency-sounds-kids-sleep-sounds-and-peaceful-sounds-use-android-native-playback-window-androidaudio-playsound-soundid-when-available-and-do-not-attempt-web-audio-oscillator-playback-for-these-sound-ids",
+      "title": "Update the unified audio routing so that non-frequency sounds (kids sleep sounds and peaceful sounds) use Android native playback (`window.AndroidAudio.playSound(soundId)`) when available, and do not attempt Web Audio oscillator playback for these sound IDs.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-connect-the-mainplayer-state-to-a-single-shared-audio-manager-instance-so-that-play-pause-resume-stop-and-track-changes-in-usemainplayer-consistently-start-stop-the-actual-audio-output-instead-of-each-component-creating-its-own-useunifiedaudiomanager-instance",
+      "title": "Connect the MainPlayer state to a single shared audio manager instance so that play/pause/resume/stop and track changes in `useMainPlayer` consistently start/stop the actual audio output (instead of each component creating its own `useUnifiedAudioManager()` instance).",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-clear-developer-facing-console-logs-for-the-routing-decision-frequency-via-webaudio-vs-sound-via-android-native-to-make-it-easy-to-verify-that-frequencies-and-res-raw-sounds-are-not-being-mixed",
+      "title": "Add clear developer-facing console logs for the routing decision (frequency via WebAudio vs sound via Android native) to make it easy to verify that frequencies and `res/raw` sounds are not being mixed.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [],
+  "architecturalNotes": [
+    "Frontend uses React Context Providers for cross-app state: LanguageProvider, VisualThemeProvider, VisualizationProvider (fullscreen state), MainPlayerProvider (unified playback state + sleep timer), BackgroundAmbianceProvider, AudioActivationProvider, and InternetIdentityProvider.",
+    "Playback is modeled as a queue of typed items: {type:'frequency', id:number} and {type:'sound', id:string}, allowing sessions and playlists to share the same player state shape.",
+    "UI is componentized with TailwindCSS (including a custom xs breakpoint) and shared UI primitives (Button, Card, Slider).",
+    "Full-screen visualization is implemented via an imperative HTML canvas animation loop (requestAnimationFrame) with frequency-specific visual configuration.",
+    "User preferences and feature state are persisted using localStorage keys (language, theme, fullscreen mode, ambiance selection, audio activation).",
+    "Audio unlocking for mobile browsers is handled by creating/resuming an AudioContext and playing a near-silent oscillator on first user interaction.",
+    "React Query is used for actor creation and query invalidation when identity changes; overall app functionality is largely client-side without backend queries.",
+    "Backend includes a Motoko blob-storage module/mixin for authorization and cycles refill flow via a 'cashier' principal; backend main actor is intentionally empty.",
+    "Mobile (Android WebView APK) plan: support dual audio backends—(1) native Android `res/raw` playback via a JavaScriptInterface named `AndroidAudio` (MediaPlayer) and (2) existing web audio/CDN playback as fallback. Rule: if `window.AndroidAudio` exists use native; otherwise use web fallback. `addJavascriptInterface` must be called before `loadUrl`, and JS calls `window.AndroidAudio.playSound(soundId)` without file extension.",
+    "Audio routing rule refinement: keep frequency playback (Web Audio oscillator-based tones) separate from sample-based sounds stored in Android APK res/raw. Only delegate to window.AndroidAudio.playSound(soundId) for sample-based soundIds that exist in res/raw; otherwise fall back to the existing web frequency playback. Do not let the AndroidAudio-branch block/disable frequency playback."
+  ],
+  "knownIssues": [
+    "Time unit inconsistency: MainPlayer.formatTime() expects milliseconds, but UnifiedSessionManager sets totalDuration/timeRemaining in seconds, while UnifiedPlaylistManager uses milliseconds. This can break countdown display and progress calculations.",
+    "MainPlayerProvider implements a sleep timer that stops playback after selectedDuration, but it does not decrement timeRemaining; session/playlist managers maintain their own timers, which can conflict with the sleep timer (e.g., session interval may keep running after the sleep timer resets player state).",
+    "useUnifiedAudioManager Web Audio fallback only supports parsing frequency from a 'freq-###' soundId; non-frequency sound IDs (e.g., 'white-noise', 'peaceful-light-rain') will not play in web fallback mode because parseInt() fails (and no sample playback is implemented in the shown code).",
+    "BackgroundAmbianceProvider has audio.src assignment commented out; without real audio files wired in, ambiance playback will be silent/non-functional.",
+    "LanguageSelectorPopup/ThemeSelectorPopup/BackgroundAmbianceSelectorPopup derive the current language by heuristics on t.subtitle text (string contains checks) instead of using the actual language code from useLanguage(), which is fragile and error-prone.",
+    "Nested QueryClientProviders exist (in main.tsx and App.tsx) with different QueryClient instances, which is redundant and can cause confusing cache/query behavior.",
+    "Some component files are present but empty (e.g., ThemeSelector.tsx, PlaylistPanel.tsx, FrequencyList.tsx, SessionPanel.tsx, EmbeddedVisualization.tsx, UnifiedPlaylistPanel.tsx, BackgroundAmbianceSelector.tsx, LanguageSelector.tsx), suggesting unfinished/legacy code or build-time dead code.",
+    "Duplicate CSS entry points exist (frontend/index.css and frontend/src/index.css) with different design tokens; this can lead to styling inconsistencies depending on which file is actually imported.",
+    "Audio regression: after introducing dual audio routing (native AndroidAudio vs web fallback), some/ all built-in frequency sounds no longer play. Likely causes: web-side `useUnifiedAudioManager` not calling `window.AndroidAudio.playSound(soundId)` on user play actions, incorrect branching causing neither backend to trigger, or mismatched sound IDs/filenames (should be ID without .mp3).",
+    "Web Audio error observed: `InvalidStateError: createMediaElementSource` called multiple times for the same HTMLMediaElement, causing playback failures; requires ensuring only one MediaElementSourceNode per element or recreating Audio elements / disconnecting nodes.",
+    "Mobile/WebView playback issue: manual `window.AndroidAudio.playSound('deniz_dalgasi')` works but UI play button does not, indicating event handler/bridge integration problem (play button path still using WebAudio or wrong soundId).",
+    "Regression: after integrating native AndroidAudio (res/raw) + web fallback, the original frequency tones (Web Audio/oscillator) no longer play because the routing/branching mixes frequency vs sample playback and/or prevents the web fallback from executing. Need strict separation and fallback logic so frequencies always play correctly."
+  ],
+  "isFixRequest": true,
+  "gameProjectType": "none",
+  "projectName": "FrequencyVerse",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0,
+  "requiresBackendChanges": false,
+  "requiresFrontendChanges": true
+}

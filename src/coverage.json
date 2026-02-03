@@ -1,0 +1,98 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-03T14:41:21.205Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 4,
+    "implemented": 4,
+    "items": [
+      {
+        "id": "REQ-1",
+        "summary": "Update the unified audio routing so that frequency tones (the original/legacy frequencies) are always played via Web Audio oscillator playback and are never delegated to Android `res/raw` playback, even when `window.AndroidAudio` exists.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useUnifiedAudioManager.ts",
+          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useUnifiedAudioManager.ts",
+          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Update the unified audio routing so that non-frequency sounds (kids sleep sounds and peaceful sounds) use Android native playback (`window.AndroidAudio.playSound(soundId)`) when available, and do not attempt Web Audio oscillator playback for these sound IDs.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useUnifiedAudioManager.ts",
+          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useUnifiedAudioManager.ts",
+          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Connect the MainPlayer state to a single shared audio manager instance so that play/pause/resume/stop and track changes in `useMainPlayer` consistently start/stop the actual audio output (instead of each component creating its own `useUnifiedAudioManager()` instance).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/UnifiedAudioManagerContext.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/components/ThemeBackground.tsx",
+          "frontend/src/components/UnifiedFrequencyList.tsx",
+          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/UnifiedAudioManagerContext.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/components/ThemeBackground.tsx",
+          "frontend/src/components/UnifiedFrequencyList.tsx",
+          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Add clear developer-facing console logs for the routing decision (frequency via WebAudio vs sound via Android native) to make it easy to verify that frequencies and `res/raw` sounds are not being mixed.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useUnifiedAudioManager.ts",
+          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useUnifiedAudioManager.ts",
+          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "build-request.json",
+    "build-template/Dockerfile",
+    "build-template/LICENSE",
+    "build-template/README.md",
+    "build-template/deploy.sh",
+    "build-template/icp.yaml",
+    "build-template/src/backend/canister.yaml",
+    "build-template/src/frontend/canister.yaml",
+    "caffeine.lock.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/components/ThemeBackground.tsx",
+    "frontend/src/components/UnifiedFrequencyList.tsx",
+    "frontend/src/hooks/UnifiedAudioManagerContext.tsx",
+    "frontend/src/hooks/useInternetIdentity.ts",
+    "frontend/src/hooks/useMainPlayerAudioSync.tsx",
+    "frontend/src/hooks/useUnifiedAudioManager.ts",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}
