@@ -1,101 +1,115 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix unified audio routing and ensure single shared audio manager",
+  "title": "Repair Player Animation UI and add per-sound meditation animations with proper fullscreen behavior",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Ensure frequency tones always use Web Audio oscillator playback and never Android native res/raw playback.",
+      "summary": "Fix the Player’s “Animation” UI so it opens reliably during playback and closes without interrupting audio.",
       "acceptanceCriteria": [
-        "On Android/WebView with `window.AndroidAudio` available, tapping any item in the Frequencies list (e.g., 432 Hz) produces audible output using Web Audio (oscillator-based tone).",
-        "Frequencies do not call `window.AndroidAudio.playSound(...)` at all (verify via logs or by code path)."
+        "When a sound or frequency is playing, the Animation UI can be opened and it renders successfully (no white screen, no ErrorBoundary).",
+        "Closing the Animation UI returns the user to the normal player screen and audio continues uninterrupted."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useUnifiedAudioManager.ts",
+          "path": "frontend/src/components/MainPlayer.tsx",
           "operation": "modify",
-          "description": "Refactor unified audio manager API to provide an explicit frequency-playback function that always uses Web Audio oscillator (bypassing any `window.AndroidAudio` delegation), and ensure frequency playback never calls Android native playback even when available."
+          "description": "Repair the Player’s visualization/animation trigger wiring: ensure the Animation UI can be opened only when audio is playing, avoid runtime errors by guarding against null refs/state, and make closing the UI simply toggle visualization state without affecting playback."
         },
         {
-          "path": "frontend/src/hooks/useMainPlayerAudioSync.tsx",
+          "path": "frontend/src/components/PlayerAnimationOverlay.tsx",
           "operation": "create",
-          "description": "Create a small sync/bridge hook that translates MainPlayer frequency state changes into calls to the shared audio manager's frequency oscillator playback (and not Android native)."
+          "description": "Create a dedicated Player Animation overlay component responsible for rendering the active animation while audio plays, handling open/close, and providing a safe fallback rendering path to prevent blank screens. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire the Animation overlay into the app shell so it renders above the normal UI when visualization fullscreen state is enabled, and unmounts cleanly on close (without affecting audio state)."
+        },
+        {
+          "path": "frontend/src/hooks/useVisualization.tsx",
+          "operation": "modify",
+          "description": "Harden visualization state management to reduce runtime errors (defensive initialization, safe toggling) and support distinguishing visualization open/close from actual browser fullscreen behavior."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Ensure non-frequency sounds use Android native playback when available and never use oscillator parsing/fallback for these sound IDs.",
+      "summary": "Implement a meditation-style animation selection system using a centralized mapping from soundId/frequency to an animation type.",
       "acceptanceCriteria": [
-        "On Android/WebView with `window.AndroidAudio` available, tapping a kids sleep sound or peaceful sound triggers `window.AndroidAudio.playSound(cleanSoundId)` with no file extension.",
-        "When playing a non-frequency sound, the app does not run the oscillator-based fallback logic that parses `freq-###`."
+        "For any currently playing soundId, an animation is chosen deterministically (never falls back to a broken/blank state).",
+        "For any currently playing frequency, a frequency-appropriate animation is chosen deterministically."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useUnifiedAudioManager.ts",
-          "operation": "modify",
-          "description": "Update routing so non-frequency sound playback uses Android native `window.AndroidAudio.playSound(cleanSoundId)` when available, strips file extensions before calling native playback, and does not attempt oscillator-based fallback or any `freq-###` parsing for non-frequency sounds."
+          "path": "frontend/src/lib/meditationAnimationMapping.ts",
+          "operation": "create",
+          "description": "Add a centralized, deterministic mapping utility (soundId → animationType; frequency → animationType) and a selector function that always returns a valid animation type with a safe default for unknown inputs."
         },
         {
-          "path": "frontend/src/hooks/useMainPlayerAudioSync.tsx",
+          "path": "frontend/src/components/PlayerAnimationOverlay.tsx",
           "operation": "modify",
-          "description": "Ensure the MainPlayer-to-audio-manager sync hook routes `currentSoundId` playback through the audio manager's non-frequency sound path (Android native when available) and never triggers oscillator parsing for these IDs."
+          "description": "Use the centralized mapping utility to select the meditation animation based on currentSoundId/currentFrequency and render the chosen animation type deterministically with a non-blank fallback. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/SoundWaveVisualization.tsx",
+          "operation": "modify",
+          "description": "Refactor visualization configuration selection so it can be driven by an explicit animationType (selected from the centralized mapping) rather than ad-hoc branching, while keeping a safe default configuration."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Use a single shared audio manager instance across the app and synchronize it with MainPlayer state for consistent start/stop/pause/resume and shared intensity.",
+      "summary": "Make fullscreen meditation animations truly cover the viewport, resize correctly on orientation changes, and remain visually comfortable.",
       "acceptanceCriteria": [
-        "When `player.playFrequency(hz)` is called, the audio manager starts playing that frequency; when `player.stop()` is called, audio stops.",
-        "MainPlayer pause/resume buttons affect audible playback (pause stops audio; resume restarts the currently selected frequency/sound).",
-        "Audio intensity used for visualizations comes from the same single active audio manager instance that is producing sound."
+        "In fullscreen mode, the animation covers the entire screen (no uncovered edges) and maintains correct aspect on resize/orientation changes.",
+        "Animations remain smooth and do not strobe/flicker during playback."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/UnifiedAudioManagerContext.tsx",
-          "operation": "create",
-          "description": "Create a React context/provider that owns exactly one `useUnifiedAudioManager()` instance and exposes a `useUnifiedAudioManagerContext()` hook so all consumers share the same playback + intensity source."
+          "path": "frontend/src/components/PlayerAnimationOverlay.tsx",
+          "operation": "modify",
+          "description": "Ensure the overlay is truly viewport-filling (including safe-area handling where applicable), prevents background scroll, and closes predictably via click/tap/ESC without leaving the app in a broken state. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/components/SoundWaveVisualization.tsx",
           "operation": "modify",
-          "description": "Wire the new UnifiedAudioManager provider at the top-level so AppContent, ThemeBackground, UnifiedFrequencyList, and any visualization consumers read intensity/playback state from the same shared audio manager instance (no per-component `useUnifiedAudioManager()` instances)."
+          "description": "Upgrade canvas sizing for fullscreen correctness and comfort: use devicePixelRatio-aware canvas sizing, listen for resize + orientation changes, and tune animation parameters to avoid strobing/flicker (slower motion, softer contrast, lower alpha pulsing)."
         },
         {
-          "path": "frontend/src/components/ThemeBackground.tsx",
+          "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Replace direct `useUnifiedAudioManager()` usage with the shared context hook so intensity reacts to the same active audio manager instance that produces sound."
-        },
-        {
-          "path": "frontend/src/components/UnifiedFrequencyList.tsx",
-          "operation": "modify",
-          "description": "Replace direct `useUnifiedAudioManager()` usage with the shared context hook so the intensity passed to full-screen visualization matches the single active audio manager instance."
-        },
-        {
-          "path": "frontend/src/hooks/useMainPlayerAudioSync.tsx",
-          "operation": "modify",
-          "description": "Finalize the bridge hook to synchronize MainPlayer state (playFrequency/playSound/pause/resume/stop/track changes) to actual audio manager playback, ensuring audible output matches the UI state and queue navigation."
+          "description": "Add minimal global styling support for fullscreen overlays (e.g., body scroll lock helper class and safe-area related utilities if needed) using existing global styling entry points."
         }
       ]
     },
     {
       "id": "REQ-4",
-      "summary": "Add clear developer-facing console logs that show the routing choice (frequency via WebAudio vs sound via Android native) to verify paths are not mixed.",
+      "summary": "Route all visualization/animation UI text through the existing localization system and ensure it is in English (no hardcoded Turkish strings).",
       "acceptanceCriteria": [
-        "When playing a frequency, logs indicate Web Audio oscillator path and do not indicate Android native path.",
-        "When playing a non-frequency sound on Android, logs indicate Android native path and do not indicate oscillator parsing."
+        "Fullscreen visualization hints/instructions are displayed in English.",
+        "No hardcoded non-English UI strings remain in visualization/animation components."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useUnifiedAudioManager.ts",
+          "path": "frontend/src/lib/translations.ts",
           "operation": "modify",
-          "description": "Add concise, consistent console logs for routing decisions: (1) frequency playback explicitly logged as Web Audio oscillator-only, (2) non-frequency sound playback explicitly logged as Android native when available (with cleanSoundId), and (3) ensure logs make it obvious that the opposite path was not taken."
+          "description": "Add/extend translation keys needed by the visualization/animation UI (e.g., fullscreen open label, exit hint, accessibility labels) with English values (and provide equivalents for other supported languages where appropriate)."
         },
         {
-          "path": "frontend/src/hooks/useMainPlayerAudioSync.tsx",
+          "path": "frontend/src/components/SoundWaveVisualization.tsx",
           "operation": "modify",
-          "description": "Add developer-facing logs at the bridge level to confirm what the MainPlayer requested (frequency vs sound, play vs pause/stop, track change) and that the request is being forwarded to the shared audio manager with the intended routing."
+          "description": "Replace hardcoded visualization UI strings with localized strings from useLanguage(), ensuring the default user-facing text is English and no Turkish strings are embedded in the component."
+        },
+        {
+          "path": "frontend/src/components/MainPlayer.tsx",
+          "operation": "modify",
+          "description": "Replace visualization-related button titles/tooltips that are currently hardcoded with localized strings from the existing localization system, ensuring English output."
+        },
+        {
+          "path": "frontend/src/components/PlayerAnimationOverlay.tsx",
+          "operation": "modify",
+          "description": "Ensure any overlay instructions/labels (e.g., how to exit, fullscreen hints) are pulled from useLanguage() translation keys and never hardcoded."
         }
       ]
     }

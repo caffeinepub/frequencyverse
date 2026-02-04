@@ -1,5 +1,6 @@
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useUnifiedAudioManager } from './useUnifiedAudioManager';
+import { useMainPlayer } from './useMainPlayer';
 
 interface UnifiedAudioManagerContextType {
   playFrequency: (hz: number) => void;
@@ -16,6 +17,21 @@ const UnifiedAudioManagerContext = createContext<UnifiedAudioManagerContextType 
 
 export function UnifiedAudioManagerProvider({ children }: { children: ReactNode }) {
   const audioManager = useUnifiedAudioManager();
+  const player = useMainPlayer();
+
+  // Sync player state to audio manager
+  useEffect(() => {
+    if (!player.isPlaying || player.isPaused) {
+      audioManager.stop();
+      return;
+    }
+
+    if (player.currentFrequency !== null) {
+      audioManager.playFrequency(player.currentFrequency);
+    } else if (player.currentSoundId !== null) {
+      audioManager.playSound(player.currentSoundId);
+    }
+  }, [player.isPlaying, player.isPaused, player.currentFrequency, player.currentSoundId]);
 
   return (
     <UnifiedAudioManagerContext.Provider value={audioManager}>

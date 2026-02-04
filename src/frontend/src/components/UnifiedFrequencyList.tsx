@@ -4,14 +4,12 @@ import KidsSleepSoundCard from './KidsSleepSoundCard';
 import PeacefulSoundCard from './PeacefulSoundCard';
 import SessionPanel from './UnifiedSessionPanel';
 import MoodSpace from './MoodSpace';
-import SoundWaveVisualization from './SoundWaveVisualization';
 import { useMainPlayer } from '../hooks/useMainPlayer';
 import { useUnifiedAudioManagerContext } from '../hooks/UnifiedAudioManagerContext';
 import { useUnifiedSessionManager } from '../hooks/useUnifiedSessionManager';
 import { useUnifiedPlaylistManager } from '../hooks/useUnifiedPlaylistManager';
 import { useLanguage } from '../hooks/useLanguage';
-import { useVisualization } from '../hooks/useVisualization';
-import { useVisualTheme } from '../hooks/useTheme';
+import { useVisualTheme, VisualTheme } from '../hooks/useTheme';
 import { kidsSleepSounds } from '../lib/kidsSleepSounds';
 import { peacefulSounds } from '../lib/peacefulSounds';
 
@@ -35,12 +33,18 @@ const frequencies: Frequency[] = [
 
 type Category = 'frequencies' | 'kidsSleepSounds' | 'peacefulSounds' | 'moodSpace';
 
+interface ThemeStyles {
+  gradient: string;
+  glow: string;
+  hoverGlow: string;
+  border: string;
+}
+
 export default function UnifiedFrequencyList() {
   const [activeCategory, setActiveCategory] = useState<Category>('frequencies');
   const player = useMainPlayer();
   const { intensity } = useUnifiedAudioManagerContext();
   const { t } = useLanguage();
-  const { isFullScreen, setFullScreen } = useVisualization();
   const { theme } = useVisualTheme();
 
   const sessionManager = useUnifiedSessionManager();
@@ -84,17 +88,14 @@ export default function UnifiedFrequencyList() {
     return player.currentSoundId === soundId && player.isPlaying;
   };
 
-  // Full-screen mode: Only show the currently playing frequency's single dedicated animation
-  const shouldShowFullScreenVisualization = isFullScreen && (player.currentFrequency !== null || player.currentSoundId !== null);
-
   const whiteNoiseSounds = kidsSleepSounds.filter(s => s.category === 'whiteNoise');
   const natureSounds = kidsSleepSounds.filter(s => s.category === 'natureSounds');
   const lullabies = kidsSleepSounds.filter(s => s.category === 'lullabies');
   const fairyTaleSounds = kidsSleepSounds.filter(s => s.category === 'fairyTale');
 
-  // Theme-specific gradient and glow colors
-  const getThemeStyles = (isActive: boolean) => {
-    const themeConfig = {
+  // Theme-specific gradient and glow colors with defensive fallback
+  const getThemeStyles = (isActive: boolean): ThemeStyles => {
+    const themeConfig: Record<VisualTheme, ThemeStyles> = {
       'aurora-glow': {
         gradient: isActive 
           ? 'from-purple-600/80 via-blue-600/70 to-teal-600/80' 
@@ -147,7 +148,8 @@ export default function UnifiedFrequencyList() {
       },
     };
 
-    return themeConfig[theme];
+    // Defensive fallback: if theme is not in config, use aurora-glow
+    return themeConfig[theme] || themeConfig['aurora-glow'];
   };
 
   const CategoryButton = ({ category, label }: { category: Category; label: string }) => {
@@ -185,145 +187,61 @@ export default function UnifiedFrequencyList() {
   };
 
   return (
-    <>
-      <div className="max-w-6xl mx-auto relative z-10 space-y-6 sm:space-y-8 pb-32 px-3 sm:px-4">
-        <SessionPanel sessionManager={sessionManager} />
+    <div className="max-w-6xl mx-auto relative z-10 space-y-6 sm:space-y-8 pb-32 px-3 sm:px-4">
+      <SessionPanel sessionManager={sessionManager} />
 
-        {/* Category Navigation with Enhanced Design - Mobile optimized */}
-        <div className="flex justify-center gap-2 sm:gap-4 mb-4 sm:mb-6 flex-wrap">
-          <CategoryButton category="frequencies" label={t.categories.frequencies} />
-          <CategoryButton category="kidsSleepSounds" label={t.categories.kidsSleepSounds} />
-          <CategoryButton category="peacefulSounds" label={t.categories.peacefulSounds} />
-          <CategoryButton category="moodSpace" label={t.categories.moodSpace} />
+      {/* Category Navigation with Enhanced Design - Mobile optimized */}
+      <div className="flex justify-center gap-2 sm:gap-4 mb-4 sm:mb-6 flex-wrap">
+        <CategoryButton category="frequencies" label={t.categories.frequencies} />
+        <CategoryButton category="kidsSleepSounds" label={t.categories.kidsSleepSounds} />
+        <CategoryButton category="peacefulSounds" label={t.categories.peacefulSounds} />
+        <CategoryButton category="moodSpace" label={t.categories.moodSpace} />
+      </div>
+
+      {/* Mood Space Category */}
+      {activeCategory === 'moodSpace' && <MoodSpace />}
+
+      {/* Frequencies Category */}
+      {activeCategory === 'frequencies' && (
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 text-center drop-shadow-lg">
+            {t.categories.frequencies}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+            {frequencies.map((freq) => (
+              <FrequencyCard
+                key={freq.hz}
+                frequency={{
+                  hz: freq.hz,
+                  title: `${freq.hz} Hz`,
+                  description: t.frequencies[freq.hz] || '',
+                }}
+                isPlaying={isFrequencyPlaying(freq.hz)}
+                onToggle={() => handleToggle(freq.hz)}
+                isInPlaylist={playlistManager.isFrequencyInPlaylist(freq.hz)}
+                onAddToPlaylist={() => playlistManager.addFrequencyToPlaylist(freq.hz)}
+                isDisabled={sessionManager.activeSession !== null || playlistManager.isPlaylistActive}
+              />
+            ))}
+          </div>
         </div>
+      )}
 
-        {/* Mood Space Category */}
-        {activeCategory === 'moodSpace' && <MoodSpace />}
+      {/* Kids Sleep Sounds Category */}
+      {activeCategory === 'kidsSleepSounds' && (
+        <div className="space-y-6 sm:space-y-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 text-center drop-shadow-lg">
+            {t.kidsSleepSounds.categoryTitle}
+          </h2>
 
-        {/* Frequencies Category */}
-        {activeCategory === 'frequencies' && (
+          {/* White & Steady Noises */}
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 text-center drop-shadow-lg">
-              {t.categories.frequencies}
-            </h2>
+            <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 drop-shadow-lg">
+              {t.kidsSleepSounds.whiteNoise.title}
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-              {frequencies.map((freq) => (
-                <FrequencyCard
-                  key={freq.hz}
-                  frequency={{
-                    hz: freq.hz,
-                    title: `${freq.hz} Hz`,
-                    description: t.frequencies[freq.hz] || '',
-                  }}
-                  isPlaying={isFrequencyPlaying(freq.hz)}
-                  onToggle={() => handleToggle(freq.hz)}
-                  isInPlaylist={playlistManager.isFrequencyInPlaylist(freq.hz)}
-                  onAddToPlaylist={() => playlistManager.addFrequencyToPlaylist(freq.hz)}
-                  isDisabled={sessionManager.activeSession !== null || playlistManager.isPlaylistActive}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Kids Sleep Sounds Category */}
-        {activeCategory === 'kidsSleepSounds' && (
-          <div className="space-y-6 sm:space-y-8">
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 text-center drop-shadow-lg">
-              {t.kidsSleepSounds.categoryTitle}
-            </h2>
-
-            {/* White & Steady Noises */}
-            <div>
-              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 drop-shadow-lg">
-                {t.kidsSleepSounds.whiteNoise.title}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-                {whiteNoiseSounds.map((sound) => (
-                  <KidsSleepSoundCard
-                    key={sound.id}
-                    sound={sound}
-                    isPlaying={isSoundPlaying(sound.id)}
-                    onToggle={() => handleSoundToggle(sound.id)}
-                    isInPlaylist={playlistManager.isSoundInPlaylist(sound.id)}
-                    onAddToPlaylist={() => playlistManager.addSoundToPlaylist(sound.id)}
-                    isDisabled={sessionManager.activeSession !== null || playlistManager.isPlaylistActive}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Nature Sounds */}
-            <div>
-              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 drop-shadow-lg">
-                {t.kidsSleepSounds.natureSounds.title}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-                {natureSounds.map((sound) => (
-                  <KidsSleepSoundCard
-                    key={sound.id}
-                    sound={sound}
-                    isPlaying={isSoundPlaying(sound.id)}
-                    onToggle={() => handleSoundToggle(sound.id)}
-                    isInPlaylist={playlistManager.isSoundInPlaylist(sound.id)}
-                    onAddToPlaylist={() => playlistManager.addSoundToPlaylist(sound.id)}
-                    isDisabled={sessionManager.activeSession !== null || playlistManager.isPlaylistActive}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Lullabies & Musical */}
-            <div>
-              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 drop-shadow-lg">
-                {t.kidsSleepSounds.lullabies.title}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-                {lullabies.map((sound) => (
-                  <KidsSleepSoundCard
-                    key={sound.id}
-                    sound={sound}
-                    isPlaying={isSoundPlaying(sound.id)}
-                    onToggle={() => handleSoundToggle(sound.id)}
-                    isInPlaylist={playlistManager.isSoundInPlaylist(sound.id)}
-                    onAddToPlaylist={() => playlistManager.addSoundToPlaylist(sound.id)}
-                    isDisabled={sessionManager.activeSession !== null || playlistManager.isPlaylistActive}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Fairy-tale & Ambient */}
-            <div>
-              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 drop-shadow-lg">
-                {t.kidsSleepSounds.fairyTale.title}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-                {fairyTaleSounds.map((sound) => (
-                  <KidsSleepSoundCard
-                    key={sound.id}
-                    sound={sound}
-                    isPlaying={isSoundPlaying(sound.id)}
-                    onToggle={() => handleSoundToggle(sound.id)}
-                    isInPlaylist={playlistManager.isSoundInPlaylist(sound.id)}
-                    onAddToPlaylist={() => playlistManager.addSoundToPlaylist(sound.id)}
-                    isDisabled={sessionManager.activeSession !== null || playlistManager.isPlaylistActive}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Peaceful Sounds Category */}
-        {activeCategory === 'peacefulSounds' && (
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 text-center drop-shadow-lg">
-              {t.categories.peacefulSounds}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-              {peacefulSounds.map((sound) => (
-                <PeacefulSoundCard
+              {whiteNoiseSounds.map((sound) => (
+                <KidsSleepSoundCard
                   key={sound.id}
                   sound={sound}
                   isPlaying={isSoundPlaying(sound.id)}
@@ -335,19 +253,90 @@ export default function UnifiedFrequencyList() {
               ))}
             </div>
           </div>
-        )}
-      </div>
 
-      {/* Full-Screen Visualization - Only displays currently playing frequency's single animation */}
-      {/* Seamless visual transitions when toggling between normal and full-screen modes */}
-      {shouldShowFullScreenVisualization && (
-        <SoundWaveVisualization
-          visualIntensity={intensity}
-          frequency={player.currentFrequency}
-          soundId={player.currentSoundId}
-          onClose={() => setFullScreen(false)}
-        />
+          {/* Nature Sounds */}
+          <div>
+            <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 drop-shadow-lg">
+              {t.kidsSleepSounds.natureSounds.title}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+              {natureSounds.map((sound) => (
+                <KidsSleepSoundCard
+                  key={sound.id}
+                  sound={sound}
+                  isPlaying={isSoundPlaying(sound.id)}
+                  onToggle={() => handleSoundToggle(sound.id)}
+                  isInPlaylist={playlistManager.isSoundInPlaylist(sound.id)}
+                  onAddToPlaylist={() => playlistManager.addSoundToPlaylist(sound.id)}
+                  isDisabled={sessionManager.activeSession !== null || playlistManager.isPlaylistActive}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Lullabies & Musical */}
+          <div>
+            <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 drop-shadow-lg">
+              {t.kidsSleepSounds.lullabies.title}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+              {lullabies.map((sound) => (
+                <KidsSleepSoundCard
+                  key={sound.id}
+                  sound={sound}
+                  isPlaying={isSoundPlaying(sound.id)}
+                  onToggle={() => handleSoundToggle(sound.id)}
+                  isInPlaylist={playlistManager.isSoundInPlaylist(sound.id)}
+                  onAddToPlaylist={() => playlistManager.addSoundToPlaylist(sound.id)}
+                  isDisabled={sessionManager.activeSession !== null || playlistManager.isPlaylistActive}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Fairy-tale & Ambient */}
+          <div>
+            <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 drop-shadow-lg">
+              {t.kidsSleepSounds.fairyTale.title}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+              {fairyTaleSounds.map((sound) => (
+                <KidsSleepSoundCard
+                  key={sound.id}
+                  sound={sound}
+                  isPlaying={isSoundPlaying(sound.id)}
+                  onToggle={() => handleSoundToggle(sound.id)}
+                  isInPlaylist={playlistManager.isSoundInPlaylist(sound.id)}
+                  onAddToPlaylist={() => playlistManager.addSoundToPlaylist(sound.id)}
+                  isDisabled={sessionManager.activeSession !== null || playlistManager.isPlaylistActive}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
       )}
-    </>
+
+      {/* Peaceful Sounds Category */}
+      {activeCategory === 'peacefulSounds' && (
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 text-center drop-shadow-lg">
+            {t.categories.peacefulSounds}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+            {peacefulSounds.map((sound) => (
+              <PeacefulSoundCard
+                key={sound.id}
+                sound={sound}
+                isPlaying={isSoundPlaying(sound.id)}
+                onToggle={() => handleSoundToggle(sound.id)}
+                isInPlaylist={playlistManager.isSoundInPlaylist(sound.id)}
+                onAddToPlaylist={() => playlistManager.addSoundToPlaylist(sound.id)}
+                isDisabled={sessionManager.activeSession !== null || playlistManager.isPlaylistActive}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

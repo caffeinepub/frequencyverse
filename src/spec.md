@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix audio routing so legacy frequency tones always use Web Audio oscillator playback, while non-frequency sounds use Android native `res/raw` playback when available, with consistent playback control from a single shared audio manager.
+**Goal:** Repair the Player “Animation” tab and provide stable, per-sound meditation-style fullscreen animations that render reliably during playback.
 
 **Planned changes:**
-- Update unified audio routing to always play Frequencies (e.g., 432 Hz) via Web Audio oscillator and never call `window.AndroidAudio.playSound(...)` for frequency items, even when `window.AndroidAudio` exists.
-- Update unified audio routing so kids sleep sounds and peaceful sounds use `window.AndroidAudio.playSound(cleanSoundId)` on Android/WebView when available, and do not run oscillator/frequency parsing fallback for these sound IDs.
-- Refactor MainPlayer / `useMainPlayer` integration to use a single shared audio manager instance so play/pause/resume/stop and track changes control the actual active audio output and visualization intensity source.
-- Add developer-facing console logs that clearly indicate which routing path is used (frequency via Web Audio vs non-frequency via Android native) to verify they are not being mixed.
+- Fix the Player’s Animation section so it opens and renders reliably while audio is playing, without runtime errors/blank screens, and can be closed without interrupting audio.
+- Add a centralized, deterministic mapping from the currently playing item (soundId and/or frequency) to a meditation animation type so every supported item always has a valid animation selection.
+- Improve fullscreen visualization behavior so animations truly cover the entire viewport, respond correctly to resize/orientation changes, and remain visually comfortable (smooth/slow, low flicker).
+- Route all visualization/animation UI text through the existing localization system and ensure it is English-only (remove any hardcoded non-English strings in these components).
 
-**User-visible outcome:** On Android/WebView, tapping a frequency reliably plays an oscillator tone, tapping a non-frequency sound plays via Android native audio, and MainPlayer controls (play/pause/resume/stop) consistently affect the audible playback with clear console logs for verification.
+**User-visible outcome:** While a sound or frequency is playing, users can open the Animation view without crashes/white screens, see an appropriate meditation animation for the current sound/frequency, switch to fullscreen with proper screen coverage and smooth visuals, and return to the player without stopping audio.

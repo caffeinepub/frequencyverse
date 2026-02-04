@@ -1,14 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-
-// Extend Window interface to include AndroidAudio
-declare global {
-  interface Window {
-    AndroidAudio?: {
-      playSound: (soundId: string) => void;
-      stopSound?: () => void;
-    };
-  }
-}
+import { AndroidAudioBridge } from '@/lib/androidAudioBridge';
+import { toNativeSoundId } from '@/lib/androidNativeSoundId';
 
 interface AudioState {
   isPlaying: boolean;
@@ -31,15 +23,34 @@ export function useUnifiedAudioManager() {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const isUsingNativeAudioRef = useRef<boolean>(false);
+  const lastNativeSoundIdRef = useRef<string | null>(null);
 
   // Initialize Web Audio API context
-  useEffect(() => {
+  const initializeAudioContext = useCallback(() => {
     if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-      analyserRef.current = audioContextRef.current.createAnalyser();
-      analyserRef.current.fftSize = 256;
-      analyserRef.current.connect(audioContextRef.current.destination);
+      try {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        audioContextRef.current = new AudioContextClass();
+      } catch (error) {
+        console.warn('[AudioManager] Failed to initialize AudioContext:', error);
+        return;
+      }
     }
+
+    if (!analyserRef.current && audioContextRef.current) {
+      try {
+        analyserRef.current = audioContextRef.current.createAnalyser();
+        analyserRef.current.fftSize = 256;
+        analyserRef.current.connect(audioContextRef.current.destination);
+      } catch (error) {
+        console.warn('[AudioManager] Failed to create analyser:', error);
+      }
+    }
+  }, []);
+
+  // Initialize on mount
+  useEffect(() => {
+    initializeAudioContext();
 
     return () => {
       if (animationFrameRef.current) {
@@ -47,7 +58,7 @@ export function useUnifiedAudioManager() {
       }
       stop();
     };
-  }, []);
+  }, [initializeAudioContext]);
 
   // Monitor audio intensity for visualizations
   const monitorIntensity = useCallback(() => {
@@ -73,19 +84,24 @@ export function useUnifiedAudioManager() {
     updateIntensity();
   }, []);
 
-  /**
-   * Play frequency using Web Audio oscillator (NEVER uses Android native)
-   * This is the ONLY way frequencies should be played
-   */
   const playFrequency = useCallback((hz: number) => {
-    console.log(`🎵 [FREQUENCY ROUTING] Playing ${hz} Hz via Web Audio oscillator (Android native bypassed)`);
-    
     if (!audioContextRef.current || !analyserRef.current) {
-      console.error('❌ [FREQUENCY ROUTING] Web Audio context not available');
+      initializeAudioContext();
+    }
+
+    if (!audioContextRef.current || !analyserRef.current) {
+      console.warn('[AudioManager] Cannot play frequency: AudioContext not available');
       return;
     }
 
-    // Stop any existing playback
+    // Stop any existing native playback before starting frequency
+    if (isUsingNativeAudioRef.current && lastNativeSoundIdRef.current) {
+      AndroidAudioBridge.stop(lastNativeSoundIdRef.current);
+      isUsingNativeAudioRef.current = false;
+      lastNativeSoundIdRef.current = null;
+    }
+
+    // Stop any existing oscillator playback
     if (oscillatorRef.current) {
       try {
         oscillatorRef.current.stop();
@@ -97,103 +113,118 @@ export function useUnifiedAudioManager() {
 
     // Resume audio context if suspended
     if (audioContextRef.current.state === 'suspended') {
-      audioContextRef.current.resume();
+      audioContextRef.current.resume().catch(err => {
+        console.warn('[AudioManager] Failed to resume AudioContext:', err);
+      });
     }
 
-    // Create oscillator for frequency playback
-    oscillatorRef.current = audioContextRef.current.createOscillator();
-    gainNodeRef.current = audioContextRef.current.createGain();
+    try {
+      // Create oscillator for frequency playback
+      oscillatorRef.current = audioContextRef.current.createOscillator();
+      gainNodeRef.current = audioContextRef.current.createGain();
 
-    oscillatorRef.current.type = 'sine';
-    oscillatorRef.current.frequency.setValueAtTime(hz, audioContextRef.current.currentTime);
+      oscillatorRef.current.type = 'sine';
+      oscillatorRef.current.frequency.setValueAtTime(hz, audioContextRef.current.currentTime);
 
-    gainNodeRef.current.gain.setValueAtTime(audioState.volume, audioContextRef.current.currentTime);
+      gainNodeRef.current.gain.setValueAtTime(audioState.volume, audioContextRef.current.currentTime);
 
-    oscillatorRef.current.connect(gainNodeRef.current);
-    gainNodeRef.current.connect(analyserRef.current);
+      oscillatorRef.current.connect(gainNodeRef.current);
+      gainNodeRef.current.connect(analyserRef.current);
 
-    oscillatorRef.current.start();
+      oscillatorRef.current.start();
 
-    setAudioState(prev => ({
-      ...prev,
-      isPlaying: true,
-      currentSoundId: `freq-${hz}`,
-    }));
+      setAudioState(prev => ({
+        ...prev,
+        isPlaying: true,
+        currentSoundId: `freq-${hz}`,
+      }));
 
-    monitorIntensity();
-    isUsingNativeAudioRef.current = false;
-    
-    console.log(`✅ [FREQUENCY ROUTING] ${hz} Hz oscillator started successfully`);
-  }, [audioState.volume, monitorIntensity]);
+      monitorIntensity();
+      isUsingNativeAudioRef.current = false;
+      lastNativeSoundIdRef.current = null;
+    } catch (error) {
+      console.error('[AudioManager] Failed to play frequency:', error);
+    }
+  }, [audioState.volume, monitorIntensity, initializeAudioContext]);
 
-  /**
-   * Play non-frequency sound using Android native when available
-   * Falls back to Web Audio only if Android native is unavailable
-   * NEVER attempts to parse frequency from sound ID
-   */
   const playSound = useCallback((soundId: string) => {
-    console.log(`🔊 [SOUND ROUTING] Playing sound: ${soundId}`);
-    
-    // Ensure sound ID has no file extension (Android res/raw requirement)
-    const cleanSoundId = soundId.replace(/\.(mp3|wav|ogg)$/i, '');
-    
-    // Attempt Android native audio playback if available
-    if (window.AndroidAudio && typeof window.AndroidAudio.playSound === 'function') {
+    // Stop any existing native playback before starting new sound
+    if (isUsingNativeAudioRef.current && lastNativeSoundIdRef.current) {
+      AndroidAudioBridge.stop(lastNativeSoundIdRef.current);
+      isUsingNativeAudioRef.current = false;
+      lastNativeSoundIdRef.current = null;
+    }
+
+    // Stop any existing oscillator playback
+    if (oscillatorRef.current) {
       try {
-        console.log(`📱 [SOUND ROUTING] Using Android native playback for: ${cleanSoundId}`);
-        window.AndroidAudio.playSound(cleanSoundId);
-        
-        // Update state to reflect native playback
-        setAudioState(prev => ({
-          ...prev,
-          isPlaying: true,
-          currentSoundId: cleanSoundId,
-        }));
-        
-        isUsingNativeAudioRef.current = true;
-        console.log(`✅ [SOUND ROUTING] Android native playback started successfully`);
-        return;
-      } catch (error) {
-        console.warn(`⚠️ [SOUND ROUTING] Android native audio failed, falling back to Web Audio:`, error);
-        // Fallback continues below
+        oscillatorRef.current.stop();
+        oscillatorRef.current.disconnect();
+      } catch (e) {
+        // Ignore errors if already stopped
       }
-    } else {
-      console.log(`🌐 [SOUND ROUTING] Android native not available, using Web Audio fallback`);
+      oscillatorRef.current = null;
+    }
+
+    // Map web sound ID to Android native ID
+    const { nativeId, hadExplicitMapping } = toNativeSoundId(soundId);
+    
+    // Log mapping decision
+    if (!hadExplicitMapping) {
+      console.warn(
+        `[AudioManager] No explicit mapping for sound ID "${soundId}". ` +
+        `Using normalized fallback: "${nativeId}". ` +
+        `If native playback fails, add explicit mapping to androidNativeSoundId.ts`
+      );
+    }
+    
+    // Attempt Android native audio playback via defensive bridge
+    const usedNative = AndroidAudioBridge.play(nativeId);
+    
+    // Log native routing decision
+    if (AndroidAudioBridge.isAvailable()) {
+      console.log(
+        `[AudioManager] Native routing: webId="${soundId}", nativeId="${nativeId}", ` +
+        `explicitMapping=${hadExplicitMapping}, bridgeSuccess=${usedNative}`
+      );
+    }
+    
+    if (usedNative) {
+      // Keep original web soundId in state for UI/playlist/session identity
+      setAudioState(prev => ({
+        ...prev,
+        isPlaying: true,
+        currentSoundId: soundId,
+      }));
+      
+      isUsingNativeAudioRef.current = true;
+      lastNativeSoundIdRef.current = nativeId; // Store native ID for stop
+      return;
     }
 
     // Web Audio fallback for non-frequency sounds
-    // Note: This is a basic fallback - actual sound files would need to be loaded
-    console.log(`⚠️ [SOUND ROUTING] Web Audio fallback for sounds not fully implemented - sound may not play`);
-    
+    // (Currently no web implementation for sound files, just update state)
+    console.log(`[AudioManager] Fallback to web audio for sound: ${soundId}`);
     setAudioState(prev => ({
       ...prev,
       isPlaying: true,
-      currentSoundId: cleanSoundId,
+      currentSoundId: soundId,
     }));
     
     isUsingNativeAudioRef.current = false;
+    lastNativeSoundIdRef.current = null;
   }, []);
 
-  /**
-   * Stop function with proper cleanup for both native and Web Audio
-   */
   const stop = useCallback(() => {
-    console.log('🛑 [AUDIO MANAGER] Stopping all audio');
-    
-    // Handle Android native audio stop if it was being used
-    if (isUsingNativeAudioRef.current && window.AndroidAudio) {
-      try {
-        if (typeof window.AndroidAudio.stopSound === 'function') {
-          console.log('📱 [AUDIO MANAGER] Stopping Android native audio');
-          window.AndroidAudio.stopSound();
-        }
-      } catch (error) {
-        console.warn('⚠️ [AUDIO MANAGER] Android native audio stop failed:', error);
-      }
+    // Handle Android native audio stop only if native was actually used
+    if (isUsingNativeAudioRef.current && lastNativeSoundIdRef.current) {
+      const stopped = AndroidAudioBridge.stop(lastNativeSoundIdRef.current);
+      console.log(`[AudioManager] Native stop: soundId="${lastNativeSoundIdRef.current}", success=${stopped}`);
       isUsingNativeAudioRef.current = false;
+      lastNativeSoundIdRef.current = null;
     }
 
-    // ALWAYS clean up Web Audio resources (safe even if not in use)
+    // Clean up Web Audio resources
     if (oscillatorRef.current) {
       try {
         oscillatorRef.current.stop();
@@ -205,7 +236,11 @@ export function useUnifiedAudioManager() {
     }
 
     if (gainNodeRef.current) {
-      gainNodeRef.current.disconnect();
+      try {
+        gainNodeRef.current.disconnect();
+      } catch (e) {
+        // Ignore
+      }
       gainNodeRef.current = null;
     }
 
@@ -220,15 +255,17 @@ export function useUnifiedAudioManager() {
       currentSoundId: null,
       intensity: 0,
     }));
-    
-    console.log('✅ [AUDIO MANAGER] All audio stopped and cleaned up');
   }, []);
 
   const setVolume = useCallback((volume: number) => {
     const clampedVolume = Math.max(0, Math.min(1, volume));
     
     if (gainNodeRef.current && audioContextRef.current) {
-      gainNodeRef.current.gain.setValueAtTime(clampedVolume, audioContextRef.current.currentTime);
+      try {
+        gainNodeRef.current.gain.setValueAtTime(clampedVolume, audioContextRef.current.currentTime);
+      } catch (error) {
+        console.warn('[AudioManager] Failed to set volume:', error);
+      }
     }
 
     setAudioState(prev => ({

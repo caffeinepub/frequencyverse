@@ -30,6 +30,7 @@ export interface Translations {
   repeat: string;
   shuffle: string;
   visualizationToggle: string;
+  visualizationExitHint: string;
   durationUnit: string;
   timeRemaining: string;
   sessions: {
@@ -164,6 +165,7 @@ export const translations: Record<Language, Translations> = {
     repeat: 'Tekrarla',
     shuffle: 'Karıştır',
     visualizationToggle: 'Görselleştirme',
+    visualizationExitHint: 'Çıkmak için ekrana dokunun veya ESC tuşuna basın',
     durationUnit: 'dk',
     timeRemaining: 'kalan',
     sessions: {
@@ -324,6 +326,7 @@ export const translations: Record<Language, Translations> = {
     repeat: 'Repeat',
     shuffle: 'Shuffle',
     visualizationToggle: 'Visualization',
+    visualizationExitHint: 'Tap anywhere or press ESC to exit',
     durationUnit: 'min',
     timeRemaining: 'remaining',
     sessions: {
@@ -484,6 +487,7 @@ export const translations: Record<Language, Translations> = {
     repeat: 'Repetir',
     shuffle: 'Aleatorio',
     visualizationToggle: 'Visualización',
+    visualizationExitHint: 'Toca en cualquier lugar o presiona ESC para salir',
     durationUnit: 'min',
     timeRemaining: 'restante',
     sessions: {
@@ -644,6 +648,7 @@ export const translations: Record<Language, Translations> = {
     repeat: 'Répéter',
     shuffle: 'Aléatoire',
     visualizationToggle: 'Visualisation',
+    visualizationExitHint: 'Appuyez n\'importe où ou appuyez sur ESC pour quitter',
     durationUnit: 'min',
     timeRemaining: 'restant',
     sessions: {
@@ -804,6 +809,7 @@ export const translations: Record<Language, Translations> = {
     repeat: 'Wiederholen',
     shuffle: 'Zufällig',
     visualizationToggle: 'Visualisierung',
+    visualizationExitHint: 'Tippen Sie irgendwo oder drücken Sie ESC zum Beenden',
     durationUnit: 'Min',
     timeRemaining: 'verbleibend',
     sessions: {
@@ -964,6 +970,7 @@ export const translations: Record<Language, Translations> = {
     repeat: 'Ripeti',
     shuffle: 'Casuale',
     visualizationToggle: 'Visualizzazione',
+    visualizationExitHint: 'Tocca ovunque o premi ESC per uscire',
     durationUnit: 'min',
     timeRemaining: 'rimanente',
     sessions: {
@@ -1124,6 +1131,7 @@ export const translations: Record<Language, Translations> = {
     repeat: 'Повторить',
     shuffle: 'Случайно',
     visualizationToggle: 'Визуализация',
+    visualizationExitHint: 'Нажмите в любом месте или нажмите ESC для выхода',
     durationUnit: 'мин',
     timeRemaining: 'осталось',
     sessions: {
@@ -1284,6 +1292,7 @@ export const translations: Record<Language, Translations> = {
     repeat: 'تكرار',
     shuffle: 'عشوائي',
     visualizationToggle: 'التصور',
+    visualizationExitHint: 'اضغط في أي مكان أو اضغط على ESC للخروج',
     durationUnit: 'دقيقة',
     timeRemaining: 'متبقي',
     sessions: {
@@ -1444,6 +1453,7 @@ export const translations: Record<Language, Translations> = {
     repeat: 'リピート',
     shuffle: 'シャッフル',
     visualizationToggle: 'ビジュアライゼーション',
+    visualizationExitHint: 'どこかをタップするかESCキーを押して終了',
     durationUnit: '分',
     timeRemaining: '残り',
     sessions: {
@@ -1604,6 +1614,7 @@ export const translations: Record<Language, Translations> = {
     repeat: '重复',
     shuffle: '随机',
     visualizationToggle: '可视化',
+    visualizationExitHint: '点击任意位置或按ESC退出',
     durationUnit: '分钟',
     timeRemaining: '剩余',
     sessions: {
@@ -1764,6 +1775,7 @@ export const translations: Record<Language, Translations> = {
     repeat: 'Repetir',
     shuffle: 'Aleatório',
     visualizationToggle: 'Visualização',
+    visualizationExitHint: 'Toque em qualquer lugar ou pressione ESC para sair',
     durationUnit: 'min',
     timeRemaining: 'restante',
     sessions: {

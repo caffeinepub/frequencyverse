@@ -1,87 +1,86 @@
 {
   "kind": "build_request",
-  "title": "Fix audio routing: keep WebAudio frequencies separate from Android res/raw sounds",
-  "priority": "high",
+  "title": "Fix broken Player Animation tab and add per-sound meditation animations with proper fullscreen behavior",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the unified audio routing so that frequency tones (the original/legacy frequencies) are always played via Web Audio oscillator playback and are never delegated to Android `res/raw` playback, even when `window.AndroidAudio` exists.",
+      "text": "Fix the Player’s non-working “Animation” section/tab so it reliably renders while audio is playing, without causing runtime errors or blank screens.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "bak senin eklediğin sesler ayrı raw dosyasından çalınması gereken sesler ayrı bu ikisini birbirine karıştırma yeninden eski frekanslar doğru düzgün çalsın"
+          "playerde bulunan animasyon sekmesi çalışmıyor"
         ]
       },
       "acceptanceCriteria": [
-        "On Android/WebView with `window.AndroidAudio` available, tapping any item in the Frequencies list (e.g., 432 Hz) produces audible output using Web Audio (oscillator-based tone).",
-        "Frequencies do not call `window.AndroidAudio.playSound(...)` at all (verify via logs or by code path)."
+        "When a sound or frequency is playing, the Animation UI can be opened and it renders successfully (no white screen, no ErrorBoundary).",
+        "Closing the Animation UI returns the user to the normal player screen and audio continues uninterrupted."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update the unified audio routing so that non-frequency sounds (kids sleep sounds and peaceful sounds) use Android native playback (`window.AndroidAudio.playSound(soundId)`) when available, and do not attempt Web Audio oscillator playback for these sound IDs.",
+      "text": "Implement a meditation-style animation system that selects an appropriate animation based on the currently playing item (frequency or soundId). Use a centralized mapping (e.g., soundId → animationType; frequency → animationType) so every supported sound can have a consistent animation style.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "senin eklediğin sesler ayrı raw dosyasından çalınması gereken sesler ayrı bu ikisini birbirine karıştırma"
+          "her sesin ismine uygun şekilde medisyon animasyonları istiyorum"
         ]
       },
       "acceptanceCriteria": [
-        "On Android/WebView with `window.AndroidAudio` available, tapping a kids sleep sound or peaceful sound triggers `window.AndroidAudio.playSound(cleanSoundId)` with no file extension.",
-        "When playing a non-frequency sound, the app does not run the oscillator-based fallback logic that parses `freq-###`."
+        "For any currently playing soundId, an animation is chosen deterministically (never falls back to a broken/blank state).",
+        "For any currently playing frequency, a frequency-appropriate animation is chosen deterministically."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Connect the MainPlayer state to a single shared audio manager instance so that play/pause/resume/stop and track changes in `useMainPlayer` consistently start/stop the actual audio output (instead of each component creating its own `useUnifiedAudioManager()` instance).",
+      "text": "Update the fullscreen visualization experience so the meditation animations are truly fullscreen (cover the entire viewport), resize correctly on orientation changes, and remain visually comfortable (slow movement, low flicker, low contrast strain).",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "yeninden eski frekanslar doğru düzgün çalsın"
+          "tam ekran yapıncaa göz"
         ]
       },
       "acceptanceCriteria": [
-        "When `player.playFrequency(hz)` is called, the audio manager starts playing that frequency; when `player.stop()` is called, audio stops.",
-        "MainPlayer pause/resume buttons affect audible playback (pause stops audio; resume restarts the currently selected frequency/sound).",
-        "Audio intensity used for visualizations comes from the same single active audio manager instance that is producing sound."
+        "In fullscreen mode, the animation covers the entire screen (no uncovered edges) and maintains correct aspect on resize/orientation changes.",
+        "Animations remain smooth and do not strobe/flicker during playback."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Add clear developer-facing console logs for the routing decision (frequency via WebAudio vs sound via Android native) to make it easy to verify that frequencies and `res/raw` sounds are not being mixed.",
+      "text": "Ensure all user-facing text related to the visualization/animation UI is in English and is routed through the existing localization system (no hardcoded Turkish strings in components).",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "bu ikisini birbirine karıştırma"
+          "Use English for any user-facing text in the build request."
         ]
       },
       "acceptanceCriteria": [
-        "When playing a frequency, logs indicate Web Audio oscillator path and do not indicate Android native path.",
-        "When playing a non-frequency sound on Android, logs indicate Android native path and do not indicate oscillator parsing."
+        "Fullscreen visualization hints/instructions are displayed in English.",
+        "No hardcoded non-English UI strings remain in visualization/animation components."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under `frontend/src/components/ui` (compose them as-is).",
-    "Do not edit immutable hook files listed in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`).",
-    "Backend must remain single-actor; no backend work is required for this audio routing fix."
+    "Do not edit files under frontend/src/components/ui (read-only Shadcn components). Compose them instead.",
+    "Do not modify any files listed in SYSTEM_CONTEXT.frontend.immutablePaths.",
+    "Keep the backend as a single-actor Motoko canister; no new backend services."
   ],
   "nonGoals": [
-    "Do not add new sound content catalogs or new audio files.",
-    "Do not implement new third-party audio libraries or external services.",
-    "Do not redesign the UI beyond what is necessary to restore correct playback behavior."
+    "Do not add new authentication providers (only anonymous usage is desired).",
+    "Do not implement real-time networking or WebSocket-based sync.",
+    "Do not add new sound content; only implement visuals/animations for existing sound IDs."
   ],
   "imageRequirements": {
     "required": [],

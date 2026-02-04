@@ -1,30 +1,32 @@
 import { useEffect, useRef } from 'react';
-import { selectMeditationAnimation } from '../lib/meditationAnimationMapping';
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useLanguage } from '../hooks/useLanguage';
+import { selectMeditationAnimation } from '../lib/meditationAnimationMapping';
 
-interface SoundWaveVisualizationProps {
-  visualIntensity: number;
-  frequency: number | null;
-  soundId: string | null;
+interface PlayerAnimationOverlayProps {
+  isOpen: boolean;
   onClose: () => void;
+  currentFrequency: number | null;
+  currentSoundId: string | null;
+  visualIntensity: number;
 }
 
-export default function SoundWaveVisualization({ 
-  visualIntensity, 
-  frequency,
-  soundId,
-  onClose 
-}: SoundWaveVisualizationProps) {
+export default function PlayerAnimationOverlay({
+  isOpen,
+  onClose,
+  currentFrequency,
+  currentSoundId,
+  visualIntensity,
+}: PlayerAnimationOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | undefined>(undefined);
   const { t } = useLanguage();
 
-  const handleScreenClick = () => {
-    onClose();
-  };
-
   useEffect(() => {
+    if (!isOpen) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -32,20 +34,22 @@ export default function SoundWaveVisualization({
     if (!ctx) return;
 
     // Get animation configuration based on current audio
-    const config = selectMeditationAnimation(frequency, soundId);
+    const config = selectMeditationAnimation(currentFrequency, currentSoundId);
 
     // Resize canvas with device pixel ratio for sharp rendering
     const resizeCanvas = () => {
       const dpr = window.devicePixelRatio || 1;
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
       ctx.scale(dpr, dpr);
-      canvas.style.width = `${window.innerWidth}px`;
-      canvas.style.height = `${window.innerHeight}px`;
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
     };
 
     resizeCanvas();
 
+    // Initialize particles
     const particles: Array<{
       angle: number;
       radius: number;
@@ -71,13 +75,14 @@ export default function SoundWaveVisualization({
     let time = 0;
 
     const animate = () => {
+      const rect = canvas.getBoundingClientRect();
       ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
-      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+      ctx.fillRect(0, 0, rect.width, rect.height);
 
       time += config.pulseSpeed;
 
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
 
       // Draw mystical circular rings with pulsing halos
       for (let i = 0; i < config.ringCount; i++) {
@@ -158,33 +163,78 @@ export default function SoundWaveVisualization({
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleOrientationChange);
     };
-  }, [visualIntensity, frequency, soundId]);
+  }, [isOpen, visualIntensity, currentFrequency, currentSoundId]);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
       }
     };
 
+    const handleBodyScroll = (e: Event) => {
+      e.preventDefault();
+    };
+
     window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
+    document.body.style.overflow = 'hidden';
+    document.body.addEventListener('touchmove', handleBodyScroll, { passive: false });
+
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+      document.body.removeEventListener('touchmove', handleBodyScroll);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  const handleBackgroundClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
 
   return (
     <div 
       ref={containerRef}
-      onClick={handleScreenClick}
-      className="fixed inset-0 z-[100] bg-black cursor-pointer"
+      onClick={handleBackgroundClick}
+      className="fixed inset-0 z-[100] bg-black"
       style={{ 
-        touchAction: 'manipulation',
+        touchAction: 'none',
         paddingTop: 'env(safe-area-inset-top)',
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
-      <canvas ref={canvasRef} className="w-full h-full" style={{ display: 'block' }} />
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="text-white/40 text-sm animate-pulse">
+      <canvas 
+        ref={canvasRef} 
+        className="w-full h-full"
+        style={{ display: 'block' }}
+      />
+      
+      {/* Close button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onClose}
+        className="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-white/10 z-10"
+        style={{ 
+          marginTop: 'env(safe-area-inset-top)',
+          minHeight: '44px',
+          minWidth: '44px',
+        }}
+        aria-label={t.visualizationToggle}
+      >
+        <X className="h-6 w-6" />
+      </Button>
+
+      {/* Exit hint */}
+      <div className="absolute bottom-8 left-0 right-0 flex items-center justify-center pointer-events-none z-10"
+        style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <div className="text-white/40 text-sm animate-pulse px-4 text-center">
           {t.visualizationExitHint || 'Tap anywhere or press ESC to exit'}
         </div>
       </div>

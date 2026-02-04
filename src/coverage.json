@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-03T14:41:21.205Z",
+  "generatedAt": "2026-02-03T22:39:07.031Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,84 +12,82 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the unified audio routing so that frequency tones (the original/legacy frequencies) are always played via Web Audio oscillator playback and are never delegated to Android `res/raw` playback, even when `window.AndroidAudio` exists.",
+        "summary": "Fix the Player’s non-working “Animation” section/tab so it reliably renders while audio is playing, without causing runtime errors or blank screens.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useUnifiedAudioManager.ts",
-          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+          "frontend/src/components/MainPlayer.tsx",
+          "frontend/src/components/PlayerAnimationOverlay.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/hooks/useVisualization.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useUnifiedAudioManager.ts",
-          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+          "frontend/src/components/MainPlayer.tsx",
+          "frontend/src/components/PlayerAnimationOverlay.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/hooks/useVisualization.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Update the unified audio routing so that non-frequency sounds (kids sleep sounds and peaceful sounds) use Android native playback (`window.AndroidAudio.playSound(soundId)`) when available, and do not attempt Web Audio oscillator playback for these sound IDs.",
+        "summary": "Implement a meditation-style animation system that selects an appropriate animation based on the currently playing item (frequency or soundId). Use a centralized mapping (e.g., soundId → animationType; frequency → animationType) so every supported sound can have a consistent animation style.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useUnifiedAudioManager.ts",
-          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+          "frontend/src/lib/meditationAnimationMapping.ts",
+          "frontend/src/components/PlayerAnimationOverlay.tsx",
+          "frontend/src/components/SoundWaveVisualization.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useUnifiedAudioManager.ts",
-          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+          "frontend/src/lib/meditationAnimationMapping.ts",
+          "frontend/src/components/PlayerAnimationOverlay.tsx",
+          "frontend/src/components/SoundWaveVisualization.tsx"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Connect the MainPlayer state to a single shared audio manager instance so that play/pause/resume/stop and track changes in `useMainPlayer` consistently start/stop the actual audio output (instead of each component creating its own `useUnifiedAudioManager()` instance).",
+        "summary": "Update the fullscreen visualization experience so the meditation animations are truly fullscreen (cover the entire viewport), resize correctly on orientation changes, and remain visually comfortable (slow movement, low flicker, low contrast strain).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/UnifiedAudioManagerContext.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/components/ThemeBackground.tsx",
-          "frontend/src/components/UnifiedFrequencyList.tsx",
-          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+          "frontend/src/components/PlayerAnimationOverlay.tsx",
+          "frontend/src/components/SoundWaveVisualization.tsx",
+          "frontend/src/index.css"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/UnifiedAudioManagerContext.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/components/ThemeBackground.tsx",
-          "frontend/src/components/UnifiedFrequencyList.tsx",
-          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+          "frontend/src/components/PlayerAnimationOverlay.tsx",
+          "frontend/src/components/SoundWaveVisualization.tsx"
         ]
       },
       {
         "id": "REQ-4",
-        "summary": "Add clear developer-facing console logs for the routing decision (frequency via WebAudio vs sound via Android native) to make it easy to verify that frequencies and `res/raw` sounds are not being mixed.",
+        "summary": "Ensure all user-facing text related to the visualization/animation UI is in English and is routed through the existing localization system (no hardcoded Turkish strings in components).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useUnifiedAudioManager.ts",
-          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+          "frontend/src/lib/translations.ts",
+          "frontend/src/components/SoundWaveVisualization.tsx",
+          "frontend/src/components/MainPlayer.tsx",
+          "frontend/src/components/PlayerAnimationOverlay.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useUnifiedAudioManager.ts",
-          "frontend/src/hooks/useMainPlayerAudioSync.tsx"
+          "frontend/src/lib/translations.ts",
+          "frontend/src/components/SoundWaveVisualization.tsx",
+          "frontend/src/components/MainPlayer.tsx",
+          "frontend/src/components/PlayerAnimationOverlay.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "build-request.json",
-    "build-template/Dockerfile",
-    "build-template/LICENSE",
-    "build-template/README.md",
-    "build-template/deploy.sh",
-    "build-template/icp.yaml",
-    "build-template/src/backend/canister.yaml",
-    "build-template/src/frontend/canister.yaml",
     "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/App.tsx",
-    "frontend/src/components/ThemeBackground.tsx",
-    "frontend/src/components/UnifiedFrequencyList.tsx",
-    "frontend/src/hooks/UnifiedAudioManagerContext.tsx",
-    "frontend/src/hooks/useInternetIdentity.ts",
-    "frontend/src/hooks/useMainPlayerAudioSync.tsx",
-    "frontend/src/hooks/useUnifiedAudioManager.ts",
+    "frontend/src/components/MainPlayer.tsx",
+    "frontend/src/components/PlayerAnimationOverlay.tsx",
+    "frontend/src/components/SoundWaveVisualization.tsx",
+    "frontend/src/hooks/useVisualization.tsx",
+    "frontend/src/lib/meditationAnimationMapping.ts",
+    "frontend/src/lib/translations.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

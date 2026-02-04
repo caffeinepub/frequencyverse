@@ -47,7 +47,9 @@ export default function MainPlayer() {
   const canShowFullScreen = hasActiveAudio && player.isPlaying;
 
   const handleFullScreenToggle = () => {
-    setFullScreen(true);
+    if (canShowFullScreen) {
+      setFullScreen(true);
+    }
   };
 
   const handleDurationButtonClick = () => {
@@ -127,7 +129,7 @@ export default function MainPlayer() {
                 )}
                 {player.timeRemaining > 0 && (
                   <div className="text-white/70 text-xs sm:text-sm drop-shadow-md">
-                    {formatTime(player.timeRemaining)} {t.timeRemaining || 'kalan'}
+                    {formatTime(player.timeRemaining)} {t.timeRemaining || 'remaining'}
                   </div>
                 )}
               </div>
@@ -141,7 +143,7 @@ export default function MainPlayer() {
                     size="icon"
                     onClick={player.toggleShuffle}
                     className={`${player.shuffleEnabled ? 'text-green-400' : 'text-white/70'} ${themeStyles.buttonGlow} transition-all duration-300 active:scale-95 hover:text-white min-h-[44px] min-w-[44px]`}
-                    title={t.shuffle || 'Karıştır'}
+                    title={t.shuffle || 'Shuffle'}
                   >
                     <Shuffle className="h-4 w-4 sm:h-5 sm:w-5" />
                   </Button>
@@ -151,7 +153,7 @@ export default function MainPlayer() {
                     onClick={player.previous}
                     disabled={player.queue.length <= 1}
                     className={`text-white/80 hover:text-white disabled:opacity-30 ${themeStyles.buttonGlow} transition-all duration-300 active:scale-95 min-h-[44px] min-w-[44px]`}
-                    title={t.previous || 'Önceki'}
+                    title={t.previous || 'Previous'}
                   >
                     <SkipBack className="h-4 w-4 sm:h-5 sm:w-5" />
                   </Button>
@@ -164,7 +166,7 @@ export default function MainPlayer() {
                     size="icon"
                     onClick={player.pause}
                     className={`h-12 w-12 sm:h-14 sm:w-14 bg-white/95 text-black hover:bg-white ${themeStyles.buttonGlow} transition-all duration-300 active:scale-95`}
-                    title={t.pause || 'Duraklat'}
+                    title={t.pause || 'Pause'}
                   >
                     <Pause className="h-6 w-6 sm:h-7 sm:w-7" />
                   </Button>
@@ -189,7 +191,7 @@ export default function MainPlayer() {
                     onClick={player.next}
                     disabled={player.queue.length <= 1}
                     className={`text-white/80 hover:text-white disabled:opacity-30 ${themeStyles.buttonGlow} transition-all duration-300 active:scale-95 min-h-[44px] min-w-[44px]`}
-                    title={t.next || 'Sonraki'}
+                    title={t.next || 'Next'}
                   >
                     <SkipForward className="h-4 w-4 sm:h-5 sm:w-5" />
                   </Button>
@@ -198,7 +200,7 @@ export default function MainPlayer() {
                     size="icon"
                     onClick={player.toggleRepeat}
                     className={`${player.repeatMode !== 'off' ? 'text-green-400' : 'text-white/70'} ${themeStyles.buttonGlow} transition-all duration-300 active:scale-95 hover:text-white min-h-[44px] min-w-[44px]`}
-                    title={t.repeat || 'Tekrarla'}
+                    title={t.repeat || 'Repeat'}
                   >
                     <Repeat className="h-4 w-4 sm:h-5 sm:w-5" />
                   </Button>
@@ -209,7 +211,7 @@ export default function MainPlayer() {
                   variant="ghost"
                   onClick={handleDurationButtonClick}
                   className={`flex items-center gap-1 sm:gap-2 text-white/80 hover:text-white ${themeStyles.buttonGlow} transition-all duration-300 active:scale-95 px-2 sm:px-3 py-2 min-h-[44px]`}
-                  title="Süre Seçimi"
+                  title={t.sessions?.currentDuration || 'Duration'}
                 >
                   <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span className="text-xs sm:text-sm font-medium whitespace-nowrap">{player.selectedDuration} {t.durationUnit}</span>
@@ -233,7 +235,7 @@ export default function MainPlayer() {
                   onClick={handleFullScreenToggle}
                   disabled={!canShowFullScreen}
                   className={`text-white/80 hover:text-white disabled:opacity-30 ${themeStyles.buttonGlow} transition-all duration-300 active:scale-95 min-h-[44px] min-w-[44px]`}
-                  title="Tam Ekran Görselleştirme"
+                  title={t.visualizationToggle || 'Visualization'}
                 >
                   <Maximize2 className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>

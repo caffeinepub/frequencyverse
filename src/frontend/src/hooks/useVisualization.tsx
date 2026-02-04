@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface VisualizationContextType {
   isFullScreen: boolean;
@@ -10,15 +10,33 @@ const VisualizationContext = createContext<VisualizationContextType | undefined>
 
 const FULLSCREEN_STORAGE_KEY = 'frequencyverse-visualization-fullscreen';
 
-export function VisualizationProvider({ children }: { children: ReactNode }) {
-  const [isFullScreen, setIsFullScreen] = useState<boolean>(() => {
+// Safe localStorage access with fallback
+function getStoredFullScreen(): boolean {
+  try {
     const stored = localStorage.getItem(FULLSCREEN_STORAGE_KEY);
     return stored === 'true';
-  });
+  } catch (error) {
+    console.warn('⚠️ [VISUALIZATION] Failed to read from localStorage:', error);
+    return false;
+  }
+}
+
+function saveFullScreen(enabled: boolean): void {
+  try {
+    localStorage.setItem(FULLSCREEN_STORAGE_KEY, String(enabled));
+  } catch (error) {
+    console.warn('⚠️ [VISUALIZATION] Failed to write to localStorage:', error);
+  }
+}
+
+export function VisualizationProvider({ children }: { children: ReactNode }) {
+  const [isFullScreen, setIsFullScreenState] = useState<boolean>(false);
 
   const setFullScreen = (enabled: boolean) => {
-    setIsFullScreen(enabled);
-    localStorage.setItem(FULLSCREEN_STORAGE_KEY, String(enabled));
+    setIsFullScreenState(enabled);
+    if (!enabled) {
+      saveFullScreen(false);
+    }
   };
 
   const toggleFullScreen = () => {
