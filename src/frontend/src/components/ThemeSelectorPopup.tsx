@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { useVisualTheme, VisualTheme } from '../hooks/useTheme';
 import { useLanguage } from '../hooks/useLanguage';
@@ -18,6 +18,11 @@ const themes: { value: VisualTheme; label: string }[] = [
 export default function ThemeSelectorPopup({ onClose }: ThemeSelectorPopupProps) {
   const { theme, setTheme } = useVisualTheme();
   const { t } = useLanguage();
+  const popupRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState<{ top?: number; bottom?: number; left: number; maxHeight: number }>({
+    left: 0,
+    maxHeight: 600,
+  });
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -28,6 +33,75 @@ export default function ThemeSelectorPopup({ onClose }: ThemeSelectorPopupProps)
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [onClose]);
+
+  useEffect(() => {
+    // Calculate optimal position to ensure popup opens downward and stays within viewport
+    const calculatePosition = () => {
+      if (!popupRef.current) return;
+
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      const margin = 16; // 1rem margin from viewport edges
+      
+      // Find the theme button in the header - search for all possible theme labels across languages
+      const themeButton = document.querySelector('button[aria-label*="Theme"], button[aria-label*="Tema"], button[aria-label*="Thème"], button[aria-label*="Thema"], button[aria-label*="Тема"], button[aria-label*="السمة"], button[aria-label*="テーマ"], button[aria-label*="主题"]');
+      
+      if (themeButton) {
+        const buttonRect = themeButton.getBoundingClientRect();
+        const popupWidth = 448; // max-w-md = 28rem = 448px
+        const actualPopupWidth = Math.min(popupWidth, viewportWidth - margin * 2);
+        
+        // Calculate left position (center popup under button)
+        let left = buttonRect.left + buttonRect.width / 2 - actualPopupWidth / 2;
+        
+        // Ensure popup doesn't overflow left edge
+        if (left < margin) {
+          left = margin;
+        }
+        
+        // Ensure popup doesn't overflow right edge
+        if (left + actualPopupWidth > viewportWidth - margin) {
+          left = viewportWidth - actualPopupWidth - margin;
+        }
+        
+        // Calculate available space below button
+        const spaceBelow = viewportHeight - buttonRect.bottom - margin;
+        
+        // Calculate maximum height for popup
+        const maxHeight = Math.max(300, spaceBelow - margin);
+        
+        // Always position below the button (downward opening)
+        setPosition({
+          top: buttonRect.bottom + 8, // 8px gap below button
+          left,
+          maxHeight,
+        });
+      } else {
+        // Fallback: center horizontally, position near top
+        const popupWidth = 448;
+        const actualPopupWidth = Math.min(popupWidth, viewportWidth - margin * 2);
+        const left = (viewportWidth - actualPopupWidth) / 2;
+        const maxHeight = viewportHeight - margin * 3;
+        
+        setPosition({
+          top: margin * 2,
+          left,
+          maxHeight,
+        });
+      }
+    };
+
+    // Calculate position after popup renders
+    const timer = setTimeout(calculatePosition, 0);
+    
+    // Recalculate on window resize
+    window.addEventListener('resize', calculatePosition);
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', calculatePosition);
+    };
+  }, []);
 
   const getThemeColors = () => {
     switch (theme) {
@@ -125,27 +199,39 @@ export default function ThemeSelectorPopup({ onClose }: ThemeSelectorPopupProps)
         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 animate-in fade-in duration-200"
         onClick={onClose}
       />
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md animate-in zoom-in-95 duration-200">
+      <div 
+        ref={popupRef}
+        className="fixed z-50 w-full max-w-md animate-in slide-in-from-top-2 duration-200"
+        style={{
+          top: position.top !== undefined ? `${position.top}px` : undefined,
+          bottom: position.bottom !== undefined ? `${position.bottom}px` : undefined,
+          left: `${position.left}px`,
+          maxHeight: `${position.maxHeight}px`,
+        }}
+      >
         <div className={`
           backdrop-blur-md bg-black/80 border ${colors.border}
-          ${colors.glow} rounded-xl p-6 mx-4
+          ${colors.glow} rounded-xl p-4 sm:p-6 mx-4
+          flex flex-col h-full
         `}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className={`text-xl font-bold ${colors.text}`}>
+          <div className="flex items-center justify-between mb-4 flex-shrink-0">
+            <h2 className={`text-lg sm:text-xl font-bold ${colors.text}`}>
               {getTitle()}
             </h2>
             <button
               onClick={onClose}
               className={`
                 p-2 rounded-lg ${colors.text} ${colors.hoverBg}
-                transition-colors duration-200
+                transition-colors duration-200 min-h-[44px] min-w-[44px]
+                flex items-center justify-center
               `}
+              aria-label="Close"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
           
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 gap-3 overflow-y-auto flex-1 pr-1">
             {themes.map((themeOption) => (
               <button
                 key={themeOption.value}
@@ -155,7 +241,7 @@ export default function ThemeSelectorPopup({ onClose }: ThemeSelectorPopupProps)
                   ${theme === themeOption.value ? colors.activeBg : 'bg-black/20'}
                   ${colors.text} ${colors.hoverBg}
                   transition-all duration-200
-                  text-left font-medium
+                  text-left font-medium min-h-[44px]
                 `}
               >
                 {themeOption.label}

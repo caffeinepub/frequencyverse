@@ -1,89 +1,29 @@
 {
   "kind": "build_request",
-  "title": "Fix broken Player Animation tab and add per-sound meditation animations with proper fullscreen behavior",
+  "title": "No code changes requested (retry deployment)",
   "priority": "normal",
-  "requirements": [
-    {
-      "id": "REQ-1",
-      "text": "Fix the Player’s non-working “Animation” section/tab so it reliably renders while audio is playing, without causing runtime errors or blank screens.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "playerde bulunan animasyon sekmesi çalışmıyor"
-        ]
-      },
-      "acceptanceCriteria": [
-        "When a sound or frequency is playing, the Animation UI can be opened and it renders successfully (no white screen, no ErrorBoundary).",
-        "Closing the Animation UI returns the user to the normal player screen and audio continues uninterrupted."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Implement a meditation-style animation system that selects an appropriate animation based on the currently playing item (frequency or soundId). Use a centralized mapping (e.g., soundId → animationType; frequency → animationType) so every supported sound can have a consistent animation style.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "her sesin ismine uygun şekilde medisyon animasyonları istiyorum"
-        ]
-      },
-      "acceptanceCriteria": [
-        "For any currently playing soundId, an animation is chosen deterministically (never falls back to a broken/blank state).",
-        "For any currently playing frequency, a frequency-appropriate animation is chosen deterministically."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Update the fullscreen visualization experience so the meditation animations are truly fullscreen (cover the entire viewport), resize correctly on orientation changes, and remain visually comfortable (slow movement, low flicker, low contrast strain).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "tam ekran yapıncaa göz"
-        ]
-      },
-      "acceptanceCriteria": [
-        "In fullscreen mode, the animation covers the entire screen (no uncovered edges) and maintains correct aspect on resize/orientation changes.",
-        "Animations remain smooth and do not strobe/flicker during playback."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Ensure all user-facing text related to the visualization/animation UI is in English and is routed through the existing localization system (no hardcoded Turkish strings in components).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Use English for any user-facing text in the build request."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Fullscreen visualization hints/instructions are displayed in English.",
-        "No hardcoded non-English UI strings remain in visualization/animation components."
-      ]
-    }
-  ],
+  "requirements": [],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (read-only Shadcn components). Compose them instead.",
-    "Do not modify any files listed in SYSTEM_CONTEXT.frontend.immutablePaths.",
-    "Keep the backend as a single-actor Motoko canister; no new backend services."
+    "Use English for any user-facing text in any future build request requirements.",
+    "Backend must remain a single Motoko actor in backend/main.mo; add backend/migration.mo only if state upgrades are required.",
+    "Do not edit files under frontend/src/components/ui or any paths listed in frontend.immutablePaths."
   ],
   "nonGoals": [
-    "Do not add new authentication providers (only anonymous usage is desired).",
-    "Do not implement real-time networking or WebSocket-based sync.",
-    "Do not add new sound content; only implement visuals/animations for existing sound IDs."
+    "Implementing new frontend or backend features based solely on the deployment retry request",
+    "Changing deployment/publishing infrastructure or Caffeine platform behavior"
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }
