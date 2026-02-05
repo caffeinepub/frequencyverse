@@ -1,6 +1,59 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "No code changes requested (retry deployment)",
-  "requirements": []
+  "title": "Add header Settings button with Privacy Policy link popup",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Add a Settings (gear) button to the header’s top-right button group alongside Theme and Language, matching existing button styling across breakpoints.",
+      "acceptanceCriteria": [
+        "A Settings (gear) button is visible in the header’s right-side button group on both mobile and desktop breakpoints.",
+        "The Settings button styling is consistent with the existing header buttons (theme-aware colors, focus ring, min tap target)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Add a new Settings (gear) header button in the existing right-side button group with consistent theme-aware styling, focus ring, and 44px min tap target; extend the popup toggle state to include 'settings' and ensure the button renders appropriately on mobile (icon-only) and desktop (icon + label)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Implement a header-anchored Settings popup/panel that can be opened/dismissed and contains a clearly visible \"Privacy Policy\" link opening the required URL in a new tab safely.",
+      "acceptanceCriteria": [
+        "Tapping the Settings button opens a popup/panel anchored to the header (similar interaction pattern to existing Theme/Language popups).",
+        "The popup/panel contains a \"Privacy Policy\" link labeled in English exactly as \"Privacy Policy\".",
+        "Clicking the \"Privacy Policy\" link opens https://sites.google.com/view/frequencyverseapp/privacy-policy with target=_blank and rel=\"noopener noreferrer\".",
+        "The popup/panel can be dismissed (e.g., tapping outside or pressing a close action) without breaking existing Theme/Language popups."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/SettingsPopup.tsx",
+          "operation": "create",
+          "description": "Create a new Settings popup component that follows the same interaction pattern as ThemeSelectorPopup/LanguageSelectorPopup: renders an overlay for outside-click dismissal, supports Escape-to-close, positions itself anchored under the Settings button in the header, uses theme-aware colors via useVisualTheme, and includes a clearly visible \"Privacy Policy\" anchor linking to https://sites.google.com/view/frequencyverseapp/privacy-policy with target=\"_blank\" and rel=\"noopener noreferrer\"."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Wire the new SettingsPopup into the header: import and render it when openPopup === 'settings'; ensure toggling Settings does not break existing Theme/Language popup behavior and that only one popup is open at a time."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Preserve the existing footer Privacy Policy link unchanged while adding the new Settings-based entry point to the same URL.",
+      "acceptanceCriteria": [
+        "The footer still renders the existing \"Privacy Policy\" link and continues to work after the header Settings changes.",
+        "The Privacy Policy URL is identical in both places (https://sites.google.com/view/frequencyverseapp/privacy-policy)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Footer.tsx",
+          "operation": "modify",
+          "description": "Verify the existing footer \"Privacy Policy\" link remains present and unchanged in behavior and URL after introducing the header Settings popup (no functional changes intended; ensure regressions are not introduced)."
+        }
+      ]
+    }
+  ]
 }

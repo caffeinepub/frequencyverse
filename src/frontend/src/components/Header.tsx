@@ -1,17 +1,15 @@
 import { useState } from 'react';
-import { Globe, Palette, Music } from 'lucide-react';
+import { Globe, Palette, Settings } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
 import { useVisualTheme } from '../hooks/useTheme';
-import { useBackgroundAmbiance } from '../hooks/useBackgroundAmbiance';
 import LanguageSelectorPopup from './LanguageSelectorPopup';
 import ThemeSelectorPopup from './ThemeSelectorPopup';
-import BackgroundAmbianceSelectorPopup from './BackgroundAmbianceSelectorPopup';
+import SettingsPopup from './SettingsPopup';
 
 export default function Header() {
   const { t } = useLanguage();
   const { theme } = useVisualTheme();
-  const { currentAmbiance } = useBackgroundAmbiance();
-  const [openPopup, setOpenPopup] = useState<'language' | 'theme' | 'ambiance' | null>(null);
+  const [openPopup, setOpenPopup] = useState<'language' | 'theme' | 'settings' | null>(null);
 
   const getThemeColors = () => {
     switch (theme) {
@@ -68,7 +66,7 @@ export default function Header() {
 
   const colors = getThemeColors();
 
-  const getButtonLabel = (type: 'language' | 'theme' | 'ambiance'): string => {
+  const getButtonLabel = (type: 'language' | 'theme' | 'settings'): string => {
     const labels: Record<string, Record<string, string>> = {
       language: {
         tr: 'Dil',
@@ -96,18 +94,18 @@ export default function Header() {
         zh: '主题',
         pt: 'Tema',
       },
-      ambiance: {
-        tr: 'Arka Plan Sesleri',
-        en: 'Background Sounds',
-        es: 'Sonidos de Fondo',
-        fr: 'Sons de Fond',
-        de: 'Hintergrundgeräusche',
-        it: 'Suoni di Sottofondo',
-        ru: 'Фоновые Звуки',
-        ar: 'أصوات الخلفية',
-        ja: '背景音',
-        zh: '背景声音',
-        pt: 'Sons de Fundo',
+      settings: {
+        tr: 'Ayarlar',
+        en: 'Settings',
+        es: 'Configuración',
+        fr: 'Paramètres',
+        de: 'Einstellungen',
+        it: 'Impostazioni',
+        ru: 'Настройки',
+        ar: 'الإعدادات',
+        ja: '設定',
+        zh: '设置',
+        pt: 'Configurações',
       },
     };
     
@@ -149,24 +147,6 @@ export default function Header() {
           {/* Mobile-optimized button layout with adaptive wrapping */}
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <button
-              onClick={() => setOpenPopup(openPopup === 'ambiance' ? null : 'ambiance')}
-              className={`
-                relative flex items-center justify-center gap-2 
-                min-h-[44px] min-w-[44px] px-3 py-2 rounded-lg
-                backdrop-blur-sm ${colors.bg} border ${colors.border}
-                ${colors.glow} ${colors.text}
-                transition-all duration-300 ease-in-out
-                ${colors.hoverBg} active:scale-95
-                focus:outline-none focus:ring-2 focus:ring-white/30
-                text-sm font-medium
-              `}
-              aria-label={getButtonLabel('ambiance')}
-            >
-              <Music className="h-5 w-5 flex-shrink-0" />
-              <span className="hidden xs:inline whitespace-nowrap">{getButtonLabel('ambiance')}</span>
-            </button>
-
-            <button
               onClick={() => setOpenPopup(openPopup === 'theme' ? null : 'theme')}
               className={`
                 relative flex items-center justify-center gap-2 
@@ -201,18 +181,36 @@ export default function Header() {
               <Globe className="h-5 w-5 flex-shrink-0" />
               <span className="hidden sm:inline whitespace-nowrap">{getButtonLabel('language')}</span>
             </button>
+
+            <button
+              onClick={() => setOpenPopup(openPopup === 'settings' ? null : 'settings')}
+              className={`
+                relative flex items-center justify-center gap-2 
+                min-h-[44px] min-w-[44px] px-3 py-2 rounded-lg
+                backdrop-blur-sm ${colors.bg} border ${colors.border}
+                ${colors.glow} ${colors.text}
+                transition-all duration-300 ease-in-out
+                ${colors.hoverBg} active:scale-95
+                focus:outline-none focus:ring-2 focus:ring-white/30
+                text-sm font-medium
+              `}
+              aria-label={getButtonLabel('settings')}
+            >
+              <Settings className="h-5 w-5 flex-shrink-0" />
+              <span className="hidden sm:inline whitespace-nowrap">{getButtonLabel('settings')}</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {openPopup === 'ambiance' && (
-        <BackgroundAmbianceSelectorPopup onClose={() => setOpenPopup(null)} />
-      )}
       {openPopup === 'theme' && (
         <ThemeSelectorPopup onClose={() => setOpenPopup(null)} />
       )}
       {openPopup === 'language' && (
         <LanguageSelectorPopup onClose={() => setOpenPopup(null)} />
+      )}
+      {openPopup === 'settings' && (
+        <SettingsPopup onClose={() => setOpenPopup(null)} />
       )}
     </header>
   );

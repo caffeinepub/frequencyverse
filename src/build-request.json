@@ -1,29 +1,72 @@
 {
   "kind": "build_request",
-  "title": "No code changes requested (retry deployment)",
+  "title": "Add top-right Settings button that exposes Privacy Policy link",
   "priority": "normal",
-  "requirements": [],
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Add a new Settings button in the app header (top-right area) alongside the existing Theme and Language buttons.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "user-1"
+        ],
+        "quotes": [
+          "en üst sağ kısma bir tane ayarlar butonu ekle oradan göreyim"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A Settings (gear) button is visible in the header’s right-side button group on both mobile and desktop breakpoints.",
+        "The Settings button styling is consistent with the existing header buttons (theme-aware colors, focus ring, min tap target)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "When the Settings button is clicked/tapped, open a settings popup/panel that includes a clearly visible \"Privacy Policy\" link that opens https://sites.google.com/view/frequencyverseapp/privacy-policy in a new tab/window.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "user-1"
+        ],
+        "quotes": [
+          "en üst sağ kısma bir tane ayarlar butonu ekle oradan göreyim"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Tapping the Settings button opens a popup/panel anchored to the header (similar interaction pattern to existing Theme/Language popups).",
+        "The popup/panel contains a \"Privacy Policy\" link labeled in English exactly as \"Privacy Policy\".",
+        "Clicking the \"Privacy Policy\" link opens https://sites.google.com/view/frequencyverseapp/privacy-policy with target=_blank and rel=\"noopener noreferrer\".",
+        "The popup/panel can be dismissed (e.g., tapping outside or pressing a close action) without breaking existing Theme/Language popups."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Keep the existing footer \"Privacy Policy\" link as-is; the new Settings entry point must be an additional way to access the same URL.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "user-1"
+        ],
+        "quotes": [
+          "en üst sağ kısma bir tane ayarlar butonu ekle oradan göreyim"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The footer still renders the existing \"Privacy Policy\" link and continues to work after the header Settings changes.",
+        "The Privacy Policy URL is identical in both places (https://sites.google.com/view/frequencyverseapp/privacy-policy)."
+      ]
+    }
+  ],
   "constraints": [
-    "Use English for any user-facing text in any future build request requirements.",
-    "Backend must remain a single Motoko actor in backend/main.mo; add backend/migration.mo only if state upgrades are required.",
-    "Do not edit files under frontend/src/components/ui or any paths listed in frontend.immutablePaths."
+    "Do not edit files under frontend/src/components/ui (compose them instead if needed).",
+    "Do not modify immutable hook files (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx)."
   ],
   "nonGoals": [
-    "Implementing new frontend or backend features based solely on the deployment retry request",
-    "Changing deployment/publishing infrastructure or Caffeine platform behavior"
+    "Building a full Settings page with additional app preferences beyond providing access to the Privacy Policy link.",
+    "Backend/canister changes (no new Motoko APIs required)."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

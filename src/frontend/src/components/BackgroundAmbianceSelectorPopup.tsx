@@ -297,6 +297,7 @@ export default function BackgroundAmbianceSelectorPopup({ onClose }: BackgroundA
   };
 
   const handleSelect = (type: AmbianceType | null) => {
+    console.log('🎵 [AMBIANCE POPUP] User selected:', type);
     setAmbiance(type);
     onClose();
   };

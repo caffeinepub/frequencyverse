@@ -1,15 +1,49 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
-  "known_issues": [
-    "Deployment/publishing occasionally fails due to a transient Caffeine-side error; retrying the deployment typically resolves it."
+  "summary": "App UI update to ensure the Privacy Policy link is accessible by adding a top-right Settings button/entry point.",
+  "architectural_notes": [
+    "Ensure Privacy Policy link is reachable via a clearly visible Settings entry point (top-right button)."
   ],
-  "isFixRequest": true,
-  "existing_features": [],
-  "new_feature_requests": [],
-  "projectName": "No code changes requested (retry deployment)",
+  "known_issues": [
+    "Users report there is no visible Settings tab/section in the current UI."
+  ],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-add-a-new-settings-button-in-the-app-header-top-right-area-alongside-the-existing-theme-and-language-buttons",
+      "title": "Add a new Settings button in the app header (top-right area) alongside the existing Theme and Language buttons.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-when-the-settings-button-is-clicked-tapped-open-a-settings-popup-panel-that-includes-a-clearly-visible-privacy-policy-link-that-opens-https-sites-google-com-view-frequencyverseapp-privacy-policy-in-a-new-tab-window",
+      "title": "When the Settings button is clicked/tapped, open a settings popup/panel that includes a clearly visible \"Privacy Policy\" link that opens https://sites.google.com/view/frequencyverseapp/privacy-policy in a new tab/window.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Add a Settings button in the top-right corner so users can access the Privacy Policy link from there.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Keep the existing footer \"Privacy Policy\" link as-is; the new Settings entry point must be an additional way to access the same URL.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Add top-right Settings button that exposes Privacy Policy link",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

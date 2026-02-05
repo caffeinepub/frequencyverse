@@ -2,10 +2,10 @@ import { LanguageProvider } from './hooks/useLanguage';
 import { VisualThemeProvider } from './hooks/useTheme';
 import { VisualizationProvider } from './hooks/useVisualization';
 import { MainPlayerProvider } from './hooks/useMainPlayer';
-import { BackgroundAmbianceProvider } from './hooks/useBackgroundAmbiance';
 import { AudioActivationProvider } from './hooks/useAudioActivation';
 import { UnifiedAudioManagerProvider } from './hooks/UnifiedAudioManagerContext';
 import AppErrorBoundary from './components/AppErrorBoundary';
+import BackgroundAmbianceCleanup from './components/BackgroundAmbianceCleanup';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import UnifiedFrequencyList from './components/UnifiedFrequencyList';
@@ -24,6 +24,7 @@ function AppContent() {
   return (
     <div className="min-h-screen flex flex-col relative">
       <ThemeBackground />
+      <BackgroundAmbianceCleanup />
       <Header />
       <main className="flex-1 relative z-10 pb-32">
         <UnifiedFrequencyList />
@@ -52,9 +53,7 @@ export default function App() {
             <VisualizationProvider>
               <MainPlayerProvider>
                 <UnifiedAudioManagerProvider>
-                  <BackgroundAmbianceProvider>
-                    <AppContent />
-                  </BackgroundAmbianceProvider>
+                  <AppContent />
                 </UnifiedAudioManagerProvider>
               </MainPlayerProvider>
             </VisualizationProvider>

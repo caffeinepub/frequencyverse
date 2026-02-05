@@ -1,12 +1,55 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T17:51:48.591Z",
-  "summary": "BuildRequest explicitly requested no code changes and had no requirements; the diff only updates project_state.json metadata by adding a known issue about transient deployment/publishing failures. No unmet requirements are identifiable, and no clearly unrequested product features were added (only state/metadata changed).",
-  "missing_requirements": [],
-  "hallucinated_features": [],
-  "confidence": 0.74,
+  "generatedAt": "2026-02-05T19:55:56.814Z",
+  "summary": "Diff adds a new SettingsPopup component and updates Header to include a Settings (gear) button with popup state management. However, due to truncation, key acceptance-criteria details for the Privacy Policy link (exact label, URL, target/rel) and popup dismissal behavior cannot be confirmed from the provided diff summary. Some additional, non-requested metadata/doc updates and extra logic (e.g., multilingual label heuristics) were introduced.",
+  "missing_requirements": [
+    {
+      "id": "REQ-2",
+      "requirement": "The settings popup/panel must contain a \"Privacy Policy\" link labeled exactly \"Privacy Policy\" that opens https://sites.google.com/view/frequencyverseapp/privacy-policy in a new tab/window with target=_blank and rel=\"noopener noreferrer\".",
+      "reason": "SettingsPopup.tsx is truncated before showing the popup content/link markup, so the exact label text, URL, and anchor attributes cannot be verified from the diff summary.",
+      "evidence": [
+        "frontend/src/components/SettingsPopup.tsx (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "requirement": "The popup/panel can be dismissed (e.g., tapping outside or pressing a close action) without breaking existing Theme/Language popups.",
+      "reason": "The diff shows Escape-key handling in SettingsPopup, but does not show any outside-click dismissal or close-button wiring (component is truncated), so full dismissal behavior cannot be confirmed.",
+      "evidence": [
+        "frontend/src/components/SettingsPopup.tsx (truncated)"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Added project metadata/state tracking updates (new_feature_requests, projectStateVersion changes) unrelated to the UI requirements.",
+      "reason": "BuildRequest only asks for UI behavior in header/popup/footer; it does not request updating project_state.json.",
+      "evidence": [
+        "project_state.json"
+      ]
+    },
+    {
+      "description": "Introduced a complex multilingual heuristic for determining button labels based on substring checks of t.subtitle, and DOM querying for settings button by matching aria-label in multiple languages.",
+      "reason": "BuildRequest does not require multilingual label inference logic or DOM querying by aria-label across languages; it only requires a Settings button and popup behavior.",
+      "evidence": [
+        "frontend/src/components/Header.tsx (truncated)",
+        "frontend/src/components/SettingsPopup.tsx (truncated)"
+      ]
+    },
+    {
+      "description": "Updated/added a documentation-style file summarizing many frontend files/features not part of this request.",
+      "reason": "BuildRequest does not ask for generating or modifying a repository-wide frontend file summary.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
+    }
+  ],
+  "confidence": 0.62,
   "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/SettingsPopup.tsx",
     "project_state.json"
   ]
 }

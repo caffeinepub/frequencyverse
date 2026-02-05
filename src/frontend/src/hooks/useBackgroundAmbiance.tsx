@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useMainPlayer } from './useMainPlayer';
+import { useAudioActivation } from './useAudioActivation';
+import { getAmbianceAssetUrl } from '../lib/ambianceAssets';
 
 export type AmbianceType = 'soft-wind' | 'ocean-waves' | 'gentle-rain' | 'distant-fire' | 'ambient-pad' | null;
 
@@ -15,6 +17,7 @@ const AMBIANCE_STORAGE_KEY = 'frequencyverse-background-ambiance';
 
 export function BackgroundAmbianceProvider({ children }: { children: ReactNode }) {
   const player = useMainPlayer();
+  const { isAudioActivated } = useAudioActivation();
   const [currentAmbiance, setCurrentAmbianceState] = useState<AmbianceType>(() => {
     try {
       const stored = localStorage.getItem(AMBIANCE_STORAGE_KEY);
@@ -29,11 +32,27 @@ export function BackgroundAmbianceProvider({ children }: { children: ReactNode }
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
-  const isFadingRef = useRef(false);
-  const audioInitializedRef = useRef(false);
+  const pendingPlayRef = useRef(false);
+  const wasInterruptedByMainPlayerRef = useRef(false);
 
   const setAmbiance = (ambiance: AmbianceType) => {
+    console.log('🎵 [AMBIANCE] Setting ambiance to:', ambiance);
+    
+    // Stop and cleanup previous audio
+    if (audioRef.current) {
+      try {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      } catch (e) {
+        console.warn('⚠️ [AMBIANCE] Failed to stop previous audio:', e);
+      }
+    }
+
     setCurrentAmbianceState(ambiance);
+    setIsPlaying(false);
+    pendingPlayRef.current = false;
+    wasInterruptedByMainPlayerRef.current = false;
+    
     try {
       if (ambiance) {
         localStorage.setItem(AMBIANCE_STORAGE_KEY, ambiance);
@@ -45,11 +64,35 @@ export function BackgroundAmbianceProvider({ children }: { children: ReactNode }
     }
   };
 
-  // Initialize audio context and nodes with error handling
+  // Initialize and play ambiance audio
   useEffect(() => {
-    if (!currentAmbiance || audioInitializedRef.current) return;
+    if (!currentAmbiance) {
+      // Clean up when ambiance is turned off
+      if (audioRef.current) {
+        try {
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
+          audioRef.current.src = '';
+        } catch (e) {
+          console.warn('⚠️ [AMBIANCE] Cleanup error:', e);
+        }
+      }
+      setIsPlaying(false);
+      pendingPlayRef.current = false;
+      wasInterruptedByMainPlayerRef.current = false;
+      return;
+    }
+
+    const assetUrl = getAmbianceAssetUrl(currentAmbiance);
+    if (!assetUrl) {
+      console.warn('⚠️ [AMBIANCE] No asset URL for:', currentAmbiance);
+      return;
+    }
+
+    console.log('🎵 [AMBIANCE] Initializing audio for:', currentAmbiance, 'URL:', assetUrl);
 
     try {
+      // Initialize AudioContext
       if (!audioContextRef.current) {
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
         if (!AudioContextClass) {
@@ -61,27 +104,42 @@ export function BackgroundAmbianceProvider({ children }: { children: ReactNode }
 
       const context = audioContextRef.current;
 
+      // Resume context if suspended
       if (context.state === 'suspended') {
         context.resume().catch(err => {
           console.warn('⚠️ [AMBIANCE] Failed to resume audio context:', err);
         });
       }
 
+      // Create or update audio element
       if (!audioRef.current) {
         const audio = new Audio();
         audio.loop = true;
-        audio.volume = 0;
+        audio.volume = 1.0; // Full volume, we'll control via gain node
+        audio.preload = 'auto';
         audioRef.current = audio;
+
+        // Add error handler
+        audio.addEventListener('error', (e) => {
+          console.error('❌ [AMBIANCE] Audio load error:', e, 'URL:', assetUrl);
+        });
+
+        // Add loaded handler
+        audio.addEventListener('canplaythrough', () => {
+          console.log('✅ [AMBIANCE] Audio loaded successfully:', assetUrl);
+        });
       }
 
       const audio = audioRef.current;
       
-      // Set audio source based on ambiance type
-      // In production, these would be actual audio files in the raw folder
-      // audio.src = `/raw/ambiance/${currentAmbiance}.mp3`;
+      // Set the audio source
+      if (audio.src !== assetUrl) {
+        audio.src = assetUrl;
+        console.log('🎵 [AMBIANCE] Audio source set to:', assetUrl);
+      }
       
       // Create audio nodes if they don't exist
-      if (!sourceNodeRef.current && audio) {
+      if (!sourceNodeRef.current) {
         try {
           sourceNodeRef.current = context.createMediaElementSource(audio);
           gainNodeRef.current = context.createGain();
@@ -89,84 +147,135 @@ export function BackgroundAmbianceProvider({ children }: { children: ReactNode }
           sourceNodeRef.current.connect(gainNodeRef.current);
           gainNodeRef.current.connect(context.destination);
           
-          gainNodeRef.current.gain.setValueAtTime(0, context.currentTime);
-          audioInitializedRef.current = true;
+          gainNodeRef.current.gain.setValueAtTime(0.2, context.currentTime);
+          console.log('✅ [AMBIANCE] Audio nodes created and connected');
         } catch (e) {
           console.warn('⚠️ [AMBIANCE] Audio node creation failed:', e);
+          return;
         }
       }
 
-      // Start playing if main player is not active
-      if (!player.isPlaying && gainNodeRef.current && audioInitializedRef.current) {
-        audio.play().catch(e => console.warn('⚠️ [AMBIANCE] Play failed:', e));
-        setIsPlaying(true);
-        
-        // Fade in
-        try {
-          const currentTime = context.currentTime;
-          gainNodeRef.current.gain.setValueAtTime(0.01, currentTime);
-          gainNodeRef.current.gain.exponentialRampToValueAtTime(0.2, currentTime + 2);
-        } catch (e) {
-          console.warn('⚠️ [AMBIANCE] Fade in failed:', e);
+      // Attempt to play
+      const attemptPlay = () => {
+        if (!audio || !gainNodeRef.current) return;
+
+        // Only play if main player is not active
+        if (player.isPlaying) {
+          console.log('🎵 [AMBIANCE] Main player active, keeping ambiance silent');
+          pendingPlayRef.current = true;
+          wasInterruptedByMainPlayerRef.current = true;
+          return;
         }
+
+        audio.play()
+          .then(() => {
+            console.log('✅ [AMBIANCE] Playback started successfully');
+            setIsPlaying(true);
+            pendingPlayRef.current = false;
+            
+            // Set volume
+            if (gainNodeRef.current && audioContextRef.current) {
+              try {
+                const currentTime = audioContextRef.current.currentTime;
+                gainNodeRef.current.gain.setValueAtTime(0.2, currentTime);
+              } catch (e) {
+                console.warn('⚠️ [AMBIANCE] Volume set failed:', e);
+              }
+            }
+          })
+          .catch(e => {
+            console.warn('⚠️ [AMBIANCE] Play failed (may need user interaction):', e.message);
+            pendingPlayRef.current = true;
+          });
+      };
+
+      // If audio is already activated, play immediately
+      if (isAudioActivated) {
+        attemptPlay();
+      } else {
+        // Mark as pending, will play after first user interaction
+        pendingPlayRef.current = true;
+        console.log('🎵 [AMBIANCE] Waiting for audio activation...');
       }
+
     } catch (error) {
       console.error('❌ [AMBIANCE] Initialization error:', error);
     }
+  }, [currentAmbiance, isAudioActivated]);
 
-    return () => {
-      // Cleanup on unmount
-      if (audioRef.current && !currentAmbiance) {
-        try {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-        } catch (e) {
-          // Ignore
-        }
-      }
-    };
-  }, [currentAmbiance, player.isPlaying]);
-
-  // Handle fade out/in based on main player state
+  // Handle pending play after audio activation
   useEffect(() => {
-    if (!gainNodeRef.current || !audioContextRef.current || !currentAmbiance || !audioInitializedRef.current) return;
-
-    try {
-      const context = audioContextRef.current;
-      const gainNode = gainNodeRef.current;
-
-      if (player.isPlaying && !isFadingRef.current) {
-        // Fade out when main player starts
-        isFadingRef.current = true;
-        const currentTime = context.currentTime;
-        gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + 1.5);
-        
-        setTimeout(() => {
-          isFadingRef.current = false;
-        }, 1500);
-      } else if (!player.isPlaying && !isFadingRef.current && audioRef.current) {
-        // Fade in when main player stops
-        isFadingRef.current = true;
-        
-        // Ensure audio is playing
-        if (audioRef.current.paused) {
-          audioRef.current.play().catch(e => console.warn('⚠️ [AMBIANCE] Resume failed:', e));
-        }
-        
-        const currentTime = context.currentTime;
-        gainNode.gain.setValueAtTime(0.01, currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.2, currentTime + 2);
-        
-        setTimeout(() => {
-          isFadingRef.current = false;
-        }, 2000);
-      }
-    } catch (error) {
-      console.error('❌ [AMBIANCE] Fade error:', error);
-      isFadingRef.current = false;
+    if (isAudioActivated && pendingPlayRef.current && currentAmbiance && audioRef.current && !player.isPlaying) {
+      console.log('🎵 [AMBIANCE] Audio activated, starting pending playback');
+      
+      audioRef.current.play()
+        .then(() => {
+          console.log('✅ [AMBIANCE] Pending playback started');
+          setIsPlaying(true);
+          pendingPlayRef.current = false;
+          
+          // Set volume
+          if (gainNodeRef.current && audioContextRef.current) {
+            try {
+              const currentTime = audioContextRef.current.currentTime;
+              gainNodeRef.current.gain.setValueAtTime(0.2, currentTime);
+            } catch (e) {
+              console.warn('⚠️ [AMBIANCE] Volume set failed:', e);
+            }
+          }
+        })
+        .catch(e => {
+          console.warn('⚠️ [AMBIANCE] Pending play failed:', e.message);
+        });
     }
-  }, [player.isPlaying, currentAmbiance]);
+  }, [isAudioActivated, currentAmbiance, player.isPlaying]);
+
+  // Handle stop/resume based on main player state
+  useEffect(() => {
+    if (!audioRef.current || !gainNodeRef.current || !audioContextRef.current || !currentAmbiance) return;
+
+    const audio = audioRef.current;
+    const gainNode = gainNodeRef.current;
+    const context = audioContextRef.current;
+
+    if (player.isPlaying) {
+      // Stop ambiance when main player starts
+      if (!audio.paused) {
+        console.log('🎵 [AMBIANCE] Main player started, stopping ambiance');
+        try {
+          audio.pause();
+          gainNode.gain.setValueAtTime(0, context.currentTime);
+          setIsPlaying(false);
+          wasInterruptedByMainPlayerRef.current = true;
+        } catch (e) {
+          console.warn('⚠️ [AMBIANCE] Stop failed:', e);
+        }
+      }
+    } else {
+      // Resume ambiance when main player stops (if it was interrupted and audio is activated)
+      if (wasInterruptedByMainPlayerRef.current && isAudioActivated && audio.paused) {
+        console.log('🎵 [AMBIANCE] Main player stopped, resuming ambiance');
+        
+        audio.play()
+          .then(() => {
+            console.log('✅ [AMBIANCE] Ambiance resumed successfully');
+            setIsPlaying(true);
+            wasInterruptedByMainPlayerRef.current = false;
+            
+            try {
+              const currentTime = context.currentTime;
+              gainNode.gain.setValueAtTime(0.2, currentTime);
+            } catch (e) {
+              console.warn('⚠️ [AMBIANCE] Volume set failed:', e);
+            }
+          })
+          .catch(e => {
+            console.warn('⚠️ [AMBIANCE] Resume failed:', e.message);
+            // Keep the flag so we can try again
+          });
+      }
+    }
+  }, [player.isPlaying, currentAmbiance, isAudioActivated]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -174,6 +283,7 @@ export function BackgroundAmbianceProvider({ children }: { children: ReactNode }
       try {
         if (audioRef.current) {
           audioRef.current.pause();
+          audioRef.current.src = '';
           audioRef.current = null;
         }
         if (sourceNodeRef.current) {
@@ -191,7 +301,6 @@ export function BackgroundAmbianceProvider({ children }: { children: ReactNode }
       } catch (e) {
         // Ignore cleanup errors
       }
-      audioInitializedRef.current = false;
     };
   }, []);
 
