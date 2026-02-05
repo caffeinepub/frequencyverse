@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { X, ExternalLink } from 'lucide-react';
 import { useVisualTheme } from '../hooks/useTheme';
 import { useLanguage } from '../hooks/useLanguage';
+import { VISUAL_THEME_OPTIONS } from '../lib/visualThemes';
 
 interface SettingsPopupProps {
   onClose: () => void;
 }
 
 export default function SettingsPopup({ onClose }: SettingsPopupProps) {
-  const { theme } = useVisualTheme();
+  const { theme, setTheme } = useVisualTheme();
   const { t } = useLanguage();
   const popupRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<{ top?: number; bottom?: number; left: number; maxHeight: number }>({
@@ -104,6 +105,7 @@ export default function SettingsPopup({ onClose }: SettingsPopupProps) {
           text: 'text-purple-200',
           hoverBg: 'hover:bg-purple-500/30',
           linkHover: 'hover:bg-purple-500/20',
+          activeBg: 'bg-purple-500/40',
         };
       case 'celestial-calm':
         return {
@@ -112,6 +114,7 @@ export default function SettingsPopup({ onClose }: SettingsPopupProps) {
           text: 'text-blue-200',
           hoverBg: 'hover:bg-blue-500/30',
           linkHover: 'hover:bg-blue-500/20',
+          activeBg: 'bg-blue-500/40',
         };
       case 'sacred-lotus':
         return {
@@ -120,6 +123,7 @@ export default function SettingsPopup({ onClose }: SettingsPopupProps) {
           text: 'text-pink-200',
           hoverBg: 'hover:bg-pink-500/30',
           linkHover: 'hover:bg-pink-500/20',
+          activeBg: 'bg-pink-500/40',
         };
       case 'ethereal-waves':
         return {
@@ -128,6 +132,7 @@ export default function SettingsPopup({ onClose }: SettingsPopupProps) {
           text: 'text-cyan-200',
           hoverBg: 'hover:bg-cyan-500/30',
           linkHover: 'hover:bg-cyan-500/20',
+          activeBg: 'bg-cyan-500/40',
         };
       case 'zen-garden':
         return {
@@ -136,6 +141,7 @@ export default function SettingsPopup({ onClose }: SettingsPopupProps) {
           text: 'text-green-200',
           hoverBg: 'hover:bg-green-500/30',
           linkHover: 'hover:bg-green-500/20',
+          activeBg: 'bg-green-500/40',
         };
       default:
         return {
@@ -144,6 +150,7 @@ export default function SettingsPopup({ onClose }: SettingsPopupProps) {
           text: 'text-purple-200',
           hoverBg: 'hover:bg-purple-500/30',
           linkHover: 'hover:bg-purple-500/20',
+          activeBg: 'bg-purple-500/40',
         };
     }
   };
@@ -178,6 +185,36 @@ export default function SettingsPopup({ onClose }: SettingsPopupProps) {
                  t.subtitle.includes('Descubra') ? 'pt' : 'tr';
     
     return titles[lang] || 'Ayarlar';
+  };
+
+  const getThemeLabel = (): string => {
+    const labels: Record<string, string> = {
+      tr: 'Tema',
+      en: 'Theme',
+      es: 'Tema',
+      fr: 'Thème',
+      de: 'Thema',
+      it: 'Tema',
+      ru: 'Тема',
+      ar: 'السمة',
+      ja: 'テーマ',
+      zh: '主题',
+      pt: 'Tema',
+    };
+    
+    const lang = t.subtitle.includes('frekans') ? 'tr' : 
+                 t.subtitle.includes('Discover') ? 'en' :
+                 t.subtitle.includes('Descubre') ? 'es' :
+                 t.subtitle.includes('Découvrez') ? 'fr' :
+                 t.subtitle.includes('Entdecken') ? 'de' :
+                 t.subtitle.includes('Scopri') ? 'it' :
+                 t.subtitle.includes('Откройте') ? 'ru' :
+                 t.subtitle.includes('اكتشف') ? 'ar' :
+                 t.subtitle.includes('発見') ? 'ja' :
+                 t.subtitle.includes('发现') ? 'zh' :
+                 t.subtitle.includes('Descubra') ? 'pt' : 'tr';
+    
+    return labels[lang] || 'Tema';
   };
 
   return (
@@ -218,7 +255,32 @@ export default function SettingsPopup({ onClose }: SettingsPopupProps) {
             </button>
           </div>
           
-          <div className="space-y-3 overflow-y-auto flex-1 pr-1">
+          <div className="space-y-4 overflow-y-auto flex-1 pr-1">
+            {/* Theme Selection Section */}
+            <div className="space-y-2">
+              <h3 className={`text-sm font-semibold ${colors.text} px-1`}>
+                {getThemeLabel()}
+              </h3>
+              <div className="grid grid-cols-1 gap-2">
+                {VISUAL_THEME_OPTIONS.map((themeOption) => (
+                  <button
+                    key={themeOption.value}
+                    onClick={() => setTheme(themeOption.value)}
+                    className={`
+                      p-3 rounded-lg border ${colors.border}
+                      ${theme === themeOption.value ? colors.activeBg : 'bg-black/20'}
+                      ${colors.text} ${colors.hoverBg}
+                      transition-all duration-200
+                      text-left font-medium min-h-[44px]
+                    `}
+                  >
+                    {themeOption.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Privacy Policy Link */}
             <a
               href="https://sites.google.com/view/frequencyverseapp/privacy-policy"
               target="_blank"

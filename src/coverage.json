@@ -1,47 +1,25 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T19:55:56.817Z",
+  "generatedAt": "2026-02-05T20:59:50.856Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 2,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Add a new Settings button in the app header (top-right area) alongside the existing Theme and Language buttons.",
+        "summary": "Update the Turkish (tr) localized subtitle/tagline text from \"Ses frekansları ile şifayı keşfedin\" to \"Ses frekansları ile huzuru keşfedin\".",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/Header.tsx"
+          "frontend/src/lib/translations.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/Header.tsx"
+          "frontend/src/lib/translations.ts"
         ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "When the Settings button is clicked/tapped, open a settings popup/panel that includes a clearly visible \"Privacy Policy\" link that opens https://sites.google.com/view/frequencyverseapp/privacy-policy in a new tab/window.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/SettingsPopup.tsx",
-          "frontend/src/components/Header.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/SettingsPopup.tsx",
-          "frontend/src/components/Header.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Keep the existing footer \"Privacy Policy\" link as-is; the new Settings entry point must be an additional way to access the same URL.",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/src/components/Footer.tsx"
-        ],
-        "matchedFiles": []
       }
     ]
   },
@@ -50,8 +28,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/SettingsPopup.tsx",
+    "frontend/src/lib/translations.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

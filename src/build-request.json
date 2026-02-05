@@ -1,69 +1,34 @@
 {
   "kind": "build_request",
-  "title": "Add top-right Settings button that exposes Privacy Policy link",
+  "title": "Update Turkish app tagline in header",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a new Settings button in the app header (top-right area) alongside the existing Theme and Language buttons.",
+      "text": "Update the Turkish (tr) localized subtitle/tagline text from \"Ses frekansları ile şifayı keşfedin\" to \"Ses frekansları ile huzuru keşfedin\".",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "user-1"
+          "msg-1"
         ],
         "quotes": [
-          "en üst sağ kısma bir tane ayarlar butonu ekle oradan göreyim"
+          "ses frekansları ile şifayı keşfedin sloganını Ses frekansları ile huzuru keşfedin olarak değiştir"
         ]
       },
       "acceptanceCriteria": [
-        "A Settings (gear) button is visible in the header’s right-side button group on both mobile and desktop breakpoints.",
-        "The Settings button styling is consistent with the existing header buttons (theme-aware colors, focus ring, min tap target)."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "When the Settings button is clicked/tapped, open a settings popup/panel that includes a clearly visible \"Privacy Policy\" link that opens https://sites.google.com/view/frequencyverseapp/privacy-policy in a new tab/window.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "user-1"
-        ],
-        "quotes": [
-          "en üst sağ kısma bir tane ayarlar butonu ekle oradan göreyim"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Tapping the Settings button opens a popup/panel anchored to the header (similar interaction pattern to existing Theme/Language popups).",
-        "The popup/panel contains a \"Privacy Policy\" link labeled in English exactly as \"Privacy Policy\".",
-        "Clicking the \"Privacy Policy\" link opens https://sites.google.com/view/frequencyverseapp/privacy-policy with target=_blank and rel=\"noopener noreferrer\".",
-        "The popup/panel can be dismissed (e.g., tapping outside or pressing a close action) without breaking existing Theme/Language popups."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Keep the existing footer \"Privacy Policy\" link as-is; the new Settings entry point must be an additional way to access the same URL.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "user-1"
-        ],
-        "quotes": [
-          "en üst sağ kısma bir tane ayarlar butonu ekle oradan göreyim"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The footer still renders the existing \"Privacy Policy\" link and continues to work after the header Settings changes.",
-        "The Privacy Policy URL is identical in both places (https://sites.google.com/view/frequencyverseapp/privacy-policy)."
+        "In `frontend/src/lib/translations.ts`, `translations.tr.subtitle` equals exactly: \"Ses frekansları ile huzuru keşfedin\".",
+        "When the app language is set to Turkish, the header subtitle renders as \"Ses frekansları ile huzuru keşfedin\".",
+        "No other language subtitles are changed."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (compose them instead if needed).",
-    "Do not modify immutable hook files (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx)."
+    "Do not edit any files under `frontend/src/components/ui` or any paths listed as immutable in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Building a full Settings page with additional app preferences beyond providing access to the Privacy Policy link.",
-    "Backend/canister changes (no new Motoko APIs required)."
+    "Changing the English (en) subtitle/tagline.",
+    "Updating Google Play Console store listing text.",
+    "Any redesign or layout changes in the header."
   ],
   "imageRequirements": {
     "required": [],

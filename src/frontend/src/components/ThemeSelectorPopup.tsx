@@ -2,18 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { useVisualTheme, VisualTheme } from '../hooks/useTheme';
 import { useLanguage } from '../hooks/useLanguage';
+import { VISUAL_THEME_OPTIONS } from '../lib/visualThemes';
 
 interface ThemeSelectorPopupProps {
   onClose: () => void;
 }
-
-const themes: { value: VisualTheme; label: string }[] = [
-  { value: 'aurora-glow', label: 'Aurora Glow' },
-  { value: 'celestial-calm', label: 'Celestial Calm' },
-  { value: 'sacred-lotus', label: 'Sacred Lotus' },
-  { value: 'ethereal-waves', label: 'Ethereal Waves' },
-  { value: 'zen-garden', label: 'Zen Garden' },
-];
 
 export default function ThemeSelectorPopup({ onClose }: ThemeSelectorPopupProps) {
   const { theme, setTheme } = useVisualTheme();
@@ -232,7 +225,7 @@ export default function ThemeSelectorPopup({ onClose }: ThemeSelectorPopupProps)
           </div>
           
           <div className="grid grid-cols-1 gap-3 overflow-y-auto flex-1 pr-1">
-            {themes.map((themeOption) => (
+            {VISUAL_THEME_OPTIONS.map((themeOption) => (
               <button
                 key={themeOption.value}
                 onClick={() => handleSelect(themeOption.value)}

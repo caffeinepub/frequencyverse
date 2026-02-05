@@ -1,15 +1,14 @@
 import { useState } from 'react';
-import { Globe, Palette, Settings } from 'lucide-react';
+import { Globe, Settings } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
 import { useVisualTheme } from '../hooks/useTheme';
 import LanguageSelectorPopup from './LanguageSelectorPopup';
-import ThemeSelectorPopup from './ThemeSelectorPopup';
 import SettingsPopup from './SettingsPopup';
 
 export default function Header() {
   const { t } = useLanguage();
   const { theme } = useVisualTheme();
-  const [openPopup, setOpenPopup] = useState<'language' | 'theme' | 'settings' | null>(null);
+  const [openPopup, setOpenPopup] = useState<'language' | 'settings' | null>(null);
 
   const getThemeColors = () => {
     switch (theme) {
@@ -66,7 +65,7 @@ export default function Header() {
 
   const colors = getThemeColors();
 
-  const getButtonLabel = (type: 'language' | 'theme' | 'settings'): string => {
+  const getButtonLabel = (type: 'language' | 'settings'): string => {
     const labels: Record<string, Record<string, string>> = {
       language: {
         tr: 'Dil',
@@ -80,19 +79,6 @@ export default function Header() {
         ja: '言語',
         zh: '语言',
         pt: 'Idioma',
-      },
-      theme: {
-        tr: 'Tema',
-        en: 'Theme',
-        es: 'Tema',
-        fr: 'Thème',
-        de: 'Thema',
-        it: 'Tema',
-        ru: 'Тема',
-        ar: 'السمة',
-        ja: 'テーマ',
-        zh: '主题',
-        pt: 'Tema',
       },
       settings: {
         tr: 'Ayarlar',
@@ -127,43 +113,25 @@ export default function Header() {
   return (
     <header className="relative z-20 bg-black/40 backdrop-blur-md border-b border-white/10">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
-        <div className="flex items-center justify-between flex-wrap gap-3 sm:gap-4">
-          <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-shrink">
             <img 
               src="/assets/generated/frequencyverse-logo-updated.dim_200x200.png" 
               alt="FrequencyVerse Logo" 
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg flex-shrink-0"
             />
-            <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-lg truncate">
                 FrequencyVerse
               </h1>
-              <p className="text-xs sm:text-sm text-white/80 drop-shadow">
+              <p className="text-xs sm:text-sm text-white/80 drop-shadow truncate">
                 {t.subtitle}
               </p>
             </div>
           </div>
           
-          {/* Mobile-optimized button layout with adaptive wrapping */}
-          <div className="flex items-center gap-2 flex-wrap justify-end">
-            <button
-              onClick={() => setOpenPopup(openPopup === 'theme' ? null : 'theme')}
-              className={`
-                relative flex items-center justify-center gap-2 
-                min-h-[44px] min-w-[44px] px-3 py-2 rounded-lg
-                backdrop-blur-sm ${colors.bg} border ${colors.border}
-                ${colors.glow} ${colors.text}
-                transition-all duration-300 ease-in-out
-                ${colors.hoverBg} active:scale-95
-                focus:outline-none focus:ring-2 focus:ring-white/30
-                text-sm font-medium
-              `}
-              aria-label={getButtonLabel('theme')}
-            >
-              <Palette className="h-5 w-5 flex-shrink-0" />
-              <span className="hidden sm:inline whitespace-nowrap">{getButtonLabel('theme')}</span>
-            </button>
-
+          {/* Mobile-optimized button layout - always on same row */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={() => setOpenPopup(openPopup === 'language' ? null : 'language')}
               className={`
@@ -203,9 +171,6 @@ export default function Header() {
         </div>
       </div>
 
-      {openPopup === 'theme' && (
-        <ThemeSelectorPopup onClose={() => setOpenPopup(null)} />
-      )}
       {openPopup === 'language' && (
         <LanguageSelectorPopup onClose={() => setOpenPopup(null)} />
       )}

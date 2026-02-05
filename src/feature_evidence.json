@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-new-settings-button-in-the-app-header-top-right-area-alongside-the-existing-theme-and-language-buttons",
-      "featureTitle": "Add a new Settings button in the app header (top-right area) alongside the existing Theme and Language buttons.",
+      "featureId": "feature-update-the-turkish-tr-localized-subtitle-tagline-text-from-ses-frekanslar-ile-ifay-ke-fedin-to-ses-frekanslar-ile-huzuru-ke-fedin",
+      "featureTitle": "Update the Turkish (tr) localized subtitle/tagline text from \"Ses frekansları ile şifayı keşfedin\" to \"Ses frekansları ile huzuru keşfedin\".",
       "files": [
-        "frontend/src/components/Header.tsx"
+        "frontend/src/lib/translations.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -17,26 +17,6 @@
       ],
       "testIds": [
         "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-when-the-settings-button-is-clicked-tapped-open-a-settings-popup-panel-that-includes-a-clearly-visible-privacy-policy-link-that-opens-https-sites-google-com-view-frequencyverseapp-privacy-policy-in-a-new-tab-window",
-      "featureTitle": "When the Settings button is clicked/tapped, open a settings popup/panel that includes a clearly visible \"Privacy Policy\" link that opens https://sites.google.com/view/frequencyverseapp/privacy-policy in a new tab/window.",
-      "files": [
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/SettingsPopup.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "blob-storage@4.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
       ],
       "confidence": "high"
     }

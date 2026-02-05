@@ -1,55 +1,29 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T19:55:56.814Z",
-  "summary": "Diff adds a new SettingsPopup component and updates Header to include a Settings (gear) button with popup state management. However, due to truncation, key acceptance-criteria details for the Privacy Policy link (exact label, URL, target/rel) and popup dismissal behavior cannot be confirmed from the provided diff summary. Some additional, non-requested metadata/doc updates and extra logic (e.g., multilingual label heuristics) were introduced.",
-  "missing_requirements": [
-    {
-      "id": "REQ-2",
-      "requirement": "The settings popup/panel must contain a \"Privacy Policy\" link labeled exactly \"Privacy Policy\" that opens https://sites.google.com/view/frequencyverseapp/privacy-policy in a new tab/window with target=_blank and rel=\"noopener noreferrer\".",
-      "reason": "SettingsPopup.tsx is truncated before showing the popup content/link markup, so the exact label text, URL, and anchor attributes cannot be verified from the diff summary.",
-      "evidence": [
-        "frontend/src/components/SettingsPopup.tsx (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "requirement": "The popup/panel can be dismissed (e.g., tapping outside or pressing a close action) without breaking existing Theme/Language popups.",
-      "reason": "The diff shows Escape-key handling in SettingsPopup, but does not show any outside-click dismissal or close-button wiring (component is truncated), so full dismissal behavior cannot be confirmed.",
-      "evidence": [
-        "frontend/src/components/SettingsPopup.tsx (truncated)"
-      ]
-    }
-  ],
+  "generatedAt": "2026-02-05T20:59:50.853Z",
+  "summary": "REQ-1 appears implemented by updating the Turkish subtitle string in `frontend/src/lib/translations.ts`. However, two additional files (`frontend-file-summaries.txt`, `project_state.json`) were modified without being requested in the BuildRequest.",
+  "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Added project metadata/state tracking updates (new_feature_requests, projectStateVersion changes) unrelated to the UI requirements.",
-      "reason": "BuildRequest only asks for UI behavior in header/popup/footer; it does not request updating project_state.json.",
-      "evidence": [
-        "project_state.json"
-      ]
-    },
-    {
-      "description": "Introduced a complex multilingual heuristic for determining button labels based on substring checks of t.subtitle, and DOM querying for settings button by matching aria-label in multiple languages.",
-      "reason": "BuildRequest does not require multilingual label inference logic or DOM querying by aria-label across languages; it only requires a Settings button and popup behavior.",
-      "evidence": [
-        "frontend/src/components/Header.tsx (truncated)",
-        "frontend/src/components/SettingsPopup.tsx (truncated)"
-      ]
-    },
-    {
-      "description": "Updated/added a documentation-style file summarizing many frontend files/features not part of this request.",
-      "reason": "BuildRequest does not ask for generating or modifying a repository-wide frontend file summary.",
+      "description": "Modified `frontend-file-summaries.txt` (documentation/summary content) even though the BuildRequest only asked for a translation string change.",
+      "reason": "Not requested by REQ-1 and not necessary to meet the acceptance criteria; BuildRequest scope is limited to updating `translations.tr.subtitle`.",
       "evidence": [
         "frontend-file-summaries.txt"
       ]
+    },
+    {
+      "description": "Modified `project_state.json` by adding/updating project state entries related to marketing/store text.",
+      "reason": "Explicit non-goal includes not updating Google Play Console store listing text; additionally, changing project state tracking was not requested by REQ-1.",
+      "evidence": [
+        "project_state.json"
+      ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.78,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/SettingsPopup.tsx",
+    "frontend/src/lib/translations.ts",
     "project_state.json"
   ]
 }

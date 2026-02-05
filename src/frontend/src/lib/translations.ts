@@ -156,7 +156,7 @@ export interface Translations {
 
 export const translations: Record<Language, Translations> = {
   tr: {
-    subtitle: 'Ses frekansları ile şifayı keşfedin',
+    subtitle: 'Ses frekansları ile huzuru keşfedin',
     play: 'Çal',
     stop: 'Durdur',
     pause: 'Duraklat',
