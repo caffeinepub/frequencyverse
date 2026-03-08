@@ -1,0 +1,37 @@
+{
+  "kind": "build_request",
+  "title": "Update Turkish app tagline in header",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Update the Turkish (tr) localized subtitle/tagline text from \"Ses frekansları ile şifayı keşfedin\" to \"Ses frekansları ile huzuru keşfedin\".",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "ses frekansları ile şifayı keşfedin sloganını Ses frekansları ile huzuru keşfedin olarak değiştir"
+        ]
+      },
+      "acceptanceCriteria": [
+        "In `frontend/src/lib/translations.ts`, `translations.tr.subtitle` equals exactly: \"Ses frekansları ile huzuru keşfedin\".",
+        "When the app language is set to Turkish, the header subtitle renders as \"Ses frekansları ile huzuru keşfedin\".",
+        "No other language subtitles are changed."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not edit any files under `frontend/src/components/ui` or any paths listed as immutable in SYSTEM_CONTEXT."
+  ],
+  "nonGoals": [
+    "Changing the English (en) subtitle/tagline.",
+    "Updating Google Play Console store listing text.",
+    "Any redesign or layout changes in the header."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

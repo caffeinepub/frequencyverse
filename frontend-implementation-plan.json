@@ -1,0 +1,23 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Update Turkish header subtitle/tagline translation",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Change the Turkish (tr) localized subtitle/tagline string to the requested new wording without impacting other languages.",
+      "acceptanceCriteria": [
+        "In `frontend/src/lib/translations.ts`, `translations.tr.subtitle` equals exactly: \"Ses frekansları ile huzuru keşfedin\".",
+        "When the app language is set to Turkish, the header subtitle renders as \"Ses frekansları ile huzuru keşfedin\".",
+        "No other language subtitles are changed."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/lib/translations.ts",
+          "operation": "modify",
+          "description": "Update only `translations.tr.subtitle` from \"Ses frekansları ile şifayı keşfedin\" to \"Ses frekansları ile huzuru keşfedin\", leaving all other translation entries unchanged."
+        }
+      ]
+    }
+  ]
+}

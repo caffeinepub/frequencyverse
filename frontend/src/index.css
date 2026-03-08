@@ -1,0 +1,224 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --radius: 0.75rem;
+        
+        /* Light mode - Calming blue and violet palette */
+        --background: 0.98 0.01 270;
+        --foreground: 0.25 0.02 270;
+        --card: 0.99 0.005 270;
+        --card-foreground: 0.25 0.02 270;
+        --popover: 0.99 0.005 270;
+        --popover-foreground: 0.25 0.02 270;
+        
+        /* Primary - Deep indigo */
+        --primary: 0.45 0.15 270;
+        --primary-foreground: 0.99 0.005 270;
+        
+        /* Secondary - Soft purple */
+        --secondary: 0.92 0.02 280;
+        --secondary-foreground: 0.30 0.05 270;
+        
+        /* Muted - Light lavender */
+        --muted: 0.95 0.015 270;
+        --muted-foreground: 0.50 0.03 270;
+        
+        /* Accent - Vibrant purple */
+        --accent: 0.88 0.08 285;
+        --accent-foreground: 0.30 0.05 270;
+        
+        /* Destructive - Soft red for stop button */
+        --destructive: 0.55 0.20 15;
+        --destructive-foreground: 0.99 0.005 270;
+        
+        --border: 0.90 0.02 270;
+        --input: 0.90 0.02 270;
+        --ring: 0.45 0.15 270;
+        
+        /* Chart colors - harmonious palette */
+        --chart-1: 0.60 0.15 260;
+        --chart-2: 0.65 0.12 280;
+        --chart-3: 0.55 0.18 240;
+        --chart-4: 0.70 0.10 290;
+        --chart-5: 0.58 0.14 250;
+    }
+
+    .dark {
+        /* Dark mode - Deep cosmic blues and purples */
+        --background: 0.15 0.03 270;
+        --foreground: 0.95 0.01 270;
+        --card: 0.20 0.04 270;
+        --card-foreground: 0.95 0.01 270;
+        --popover: 0.18 0.04 270;
+        --popover-foreground: 0.95 0.01 270;
+        
+        /* Primary - Bright indigo */
+        --primary: 0.70 0.18 270;
+        --primary-foreground: 0.15 0.03 270;
+        
+        /* Secondary - Deep purple */
+        --secondary: 0.30 0.06 280;
+        --secondary-foreground: 0.95 0.01 270;
+        
+        /* Muted - Dark lavender */
+        --muted: 0.25 0.04 270;
+        --muted-foreground: 0.65 0.03 270;
+        
+        /* Accent - Vivid purple */
+        --accent: 0.50 0.12 285;
+        --accent-foreground: 0.95 0.01 270;
+        
+        /* Destructive - Bright red for stop button */
+        --destructive: 0.60 0.22 15;
+        --destructive-foreground: 0.95 0.01 270;
+        
+        --border: 0.30 0.04 270;
+        --input: 0.30 0.04 270;
+        --ring: 0.70 0.18 270;
+        
+        /* Chart colors - vibrant dark palette */
+        --chart-1: 0.65 0.18 260;
+        --chart-2: 0.70 0.15 280;
+        --chart-3: 0.60 0.20 240;
+        --chart-4: 0.75 0.12 290;
+        --chart-5: 0.63 0.17 250;
+    }
+
+    * {
+        @apply border-border;
+    }
+    
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings: "rlig" 1, "calt" 1;
+    }
+}
+
+@layer utilities {
+    .text-balance {
+        text-wrap: balance;
+    }
+    
+    /* Noise texture for depth */
+    .bg-noise {
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+    
+    /* Touch manipulation for better mobile slider interaction */
+    .touch-manipulation {
+        touch-action: manipulation;
+    }
+}
+
+@layer components {
+    /* Aurora Glow Animation */
+    @keyframes aurora {
+        0%, 100% {
+            opacity: 0.6;
+            transform: translateY(0) scale(1);
+        }
+        50% {
+            opacity: 0.8;
+            transform: translateY(-10px) scale(1.02);
+        }
+    }
+    
+    .animate-aurora {
+        animation: aurora 8s ease-in-out infinite;
+    }
+    
+    /* Celestial Calm - Twinkling Stars */
+    @keyframes twinkle {
+        0%, 100% {
+            opacity: 0.5;
+        }
+        50% {
+            opacity: 0.9;
+        }
+    }
+    
+    .animate-twinkle {
+        animation: twinkle 4s ease-in-out infinite;
+    }
+    
+    /* Sacred Lotus - Water Ripples */
+    @keyframes ripple {
+        0% {
+            opacity: 0.6;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.8;
+            transform: scale(1.01);
+        }
+        100% {
+            opacity: 0.6;
+            transform: scale(1);
+        }
+    }
+    
+    .animate-ripple {
+        animation: ripple 6s ease-in-out infinite;
+    }
+    
+    /* Ethereal Waves - Flowing Energy */
+    @keyframes flow {
+        0%, 100% {
+            opacity: 0.6;
+            transform: translateX(0) translateY(0);
+        }
+        33% {
+            opacity: 0.7;
+            transform: translateX(5px) translateY(-5px);
+        }
+        66% {
+            opacity: 0.8;
+            transform: translateX(-5px) translateY(5px);
+        }
+    }
+    
+    .animate-flow {
+        animation: flow 10s ease-in-out infinite;
+    }
+    
+    /* Zen Garden - Gentle Swaying */
+    @keyframes sway {
+        0%, 100% {
+            opacity: 0.6;
+            transform: translateX(0) rotate(0deg);
+        }
+        50% {
+            opacity: 0.7;
+            transform: translateX(3px) rotate(0.5deg);
+        }
+    }
+    
+    .animate-sway {
+        animation: sway 7s ease-in-out infinite;
+    }
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 480px) {
+    /* Ensure minimum touch target sizes */
+    button, a, input[type="button"], input[type="submit"] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Improve text readability on small screens */
+    body {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+}
+
+/* Custom breakpoint for extra small screens */
+@media (min-width: 400px) {
+    .xs\:inline {
+        display: inline;
+    }
+}
