@@ -1,5 +1,5 @@
-import { Component, ReactNode, ErrorInfo } from 'react';
-import { Button } from './ui/button';
+import { Component, type ErrorInfo, type ReactNode } from "react";
+import { Button } from "./ui/button";
 
 interface Props {
   children: ReactNode;
@@ -29,10 +29,10 @@ export default class AppErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('React Error Boundary caught an error:', error);
-    console.error('Component stack:', errorInfo.componentStack);
-    console.error('Error stack:', error.stack);
-    
+    console.error("React Error Boundary caught an error:", error);
+    console.error("Component stack:", errorInfo.componentStack);
+    console.error("Error stack:", error.stack);
+
     this.setState({
       error,
       errorInfo,

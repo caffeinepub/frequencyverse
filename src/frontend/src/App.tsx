@@ -1,25 +1,31 @@
-import { LanguageProvider } from './hooks/useLanguage';
-import { VisualThemeProvider } from './hooks/useTheme';
-import { VisualizationProvider } from './hooks/useVisualization';
-import { MainPlayerProvider } from './hooks/useMainPlayer';
-import { AudioActivationProvider } from './hooks/useAudioActivation';
-import { UnifiedAudioManagerProvider } from './hooks/UnifiedAudioManagerContext';
-import AppErrorBoundary from './components/AppErrorBoundary';
-import BackgroundAmbianceCleanup from './components/BackgroundAmbianceCleanup';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import UnifiedFrequencyList from './components/UnifiedFrequencyList';
-import MainPlayer from './components/MainPlayer';
-import ThemeBackground from './components/ThemeBackground';
-import PlayerAnimationOverlay from './components/PlayerAnimationOverlay';
-import { useVisualization } from './hooks/useVisualization';
-import { useMainPlayer } from './hooks/useMainPlayer';
-import { useUnifiedAudioManager } from './hooks/useUnifiedAudioManager';
+import AppErrorBoundary from "./components/AppErrorBoundary";
+import BackgroundAmbianceCleanup from "./components/BackgroundAmbianceCleanup";
+import Footer from "./components/Footer";
+import Header from "./components/Header";
+import MainPlayer from "./components/MainPlayer";
+import PlayerAnimationOverlay from "./components/PlayerAnimationOverlay";
+import ThemeBackground from "./components/ThemeBackground";
+import UnifiedFrequencyList from "./components/UnifiedFrequencyList";
+import { UnifiedAudioManagerProvider } from "./hooks/UnifiedAudioManagerContext";
+import {
+  AnimationSettingsProvider,
+  useAnimationSettings,
+} from "./hooks/useAnimationSettings";
+import { AudioActivationProvider } from "./hooks/useAudioActivation";
+import { KidsModeProvider } from "./hooks/useKidsMode";
+import { LanguageProvider } from "./hooks/useLanguage";
+import { MainPlayerProvider } from "./hooks/useMainPlayer";
+import { useMainPlayer } from "./hooks/useMainPlayer";
+import { VisualThemeProvider } from "./hooks/useTheme";
+import { useUnifiedAudioManager } from "./hooks/useUnifiedAudioManager";
+import { VisualizationProvider } from "./hooks/useVisualization";
+import { useVisualization } from "./hooks/useVisualization";
 
 function AppContent() {
   const { isFullScreen, setFullScreen } = useVisualization();
   const player = useMainPlayer();
   const audioManager = useUnifiedAudioManager();
+  const { animationIntensity } = useAnimationSettings();
 
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -31,7 +37,7 @@ function AppContent() {
       </main>
       <MainPlayer />
       <Footer />
-      
+
       {/* Player Animation Overlay */}
       <PlayerAnimationOverlay
         isOpen={isFullScreen}
@@ -39,6 +45,7 @@ function AppContent() {
         currentFrequency={player.currentFrequency}
         currentSoundId={player.currentSoundId}
         visualIntensity={audioManager.intensity}
+        animationIntensity={animationIntensity}
       />
     </div>
   );
@@ -48,17 +55,21 @@ export default function App() {
   return (
     <AppErrorBoundary>
       <LanguageProvider>
-        <VisualThemeProvider>
-          <AudioActivationProvider>
-            <VisualizationProvider>
-              <MainPlayerProvider>
-                <UnifiedAudioManagerProvider>
-                  <AppContent />
-                </UnifiedAudioManagerProvider>
-              </MainPlayerProvider>
-            </VisualizationProvider>
-          </AudioActivationProvider>
-        </VisualThemeProvider>
+        <AnimationSettingsProvider>
+          <KidsModeProvider>
+            <VisualThemeProvider>
+              <AudioActivationProvider>
+                <VisualizationProvider>
+                  <MainPlayerProvider>
+                    <UnifiedAudioManagerProvider>
+                      <AppContent />
+                    </UnifiedAudioManagerProvider>
+                  </MainPlayerProvider>
+                </VisualizationProvider>
+              </AudioActivationProvider>
+            </VisualThemeProvider>
+          </KidsModeProvider>
+        </AnimationSettingsProvider>
       </LanguageProvider>
     </AppErrorBoundary>
   );

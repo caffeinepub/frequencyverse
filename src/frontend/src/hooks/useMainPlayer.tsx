@@ -1,7 +1,15 @@
-import { createContext, useContext, useState, useCallback, ReactNode, useRef, useEffect } from 'react';
+import {
+  type ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
-export type PlayMode = 'single' | 'session' | 'playlist';
-export type RepeatMode = 'off' | 'one' | 'all';
+export type PlayMode = "single" | "session" | "playlist";
+export type RepeatMode = "off" | "one" | "all";
 
 interface MainPlayerState {
   currentFrequency: number | null;
@@ -11,7 +19,9 @@ interface MainPlayerState {
   playMode: PlayMode;
   repeatMode: RepeatMode;
   shuffleEnabled: boolean;
-  queue: Array<{ type: 'frequency'; id: number } | { type: 'sound'; id: string }>;
+  queue: Array<
+    { type: "frequency"; id: number } | { type: "sound"; id: string }
+  >;
   currentIndex: number;
   timeRemaining: number;
   totalDuration: number;
@@ -22,7 +32,13 @@ interface MainPlayerState {
 interface MainPlayerContextType extends MainPlayerState {
   playFrequency: (hz: number, mode?: PlayMode) => void;
   playSound: (soundId: string, mode?: PlayMode) => void;
-  playQueue: (items: Array<{ type: 'frequency'; id: number } | { type: 'sound'; id: string }>, mode: PlayMode, sessionName?: string) => void;
+  playQueue: (
+    items: Array<
+      { type: "frequency"; id: number } | { type: "sound"; id: string }
+    >,
+    mode: PlayMode,
+    sessionName?: string,
+  ) => void;
   pause: () => void;
   resume: () => void;
   stop: () => void;
@@ -30,13 +46,17 @@ interface MainPlayerContextType extends MainPlayerState {
   previous: () => void;
   toggleRepeat: () => void;
   toggleShuffle: () => void;
-  setTimeRemaining: (timeOrUpdater: number | ((prev: number) => number)) => void;
+  setTimeRemaining: (
+    timeOrUpdater: number | ((prev: number) => number),
+  ) => void;
   setTotalDuration: (duration: number) => void;
   updateCurrentIndex: (index: number) => void;
   setSelectedDuration: (duration: number) => void;
 }
 
-const MainPlayerContext = createContext<MainPlayerContextType | undefined>(undefined);
+const MainPlayerContext = createContext<MainPlayerContextType | undefined>(
+  undefined,
+);
 
 export function MainPlayerProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<MainPlayerState>({
@@ -44,14 +64,25 @@ export function MainPlayerProvider({ children }: { children: ReactNode }) {
     currentSoundId: null,
     isPlaying: false,
     isPaused: false,
-    playMode: 'single',
-    repeatMode: 'off',
+    playMode: "single",
+    repeatMode: "off",
     shuffleEnabled: false,
     queue: [],
     currentIndex: 0,
     timeRemaining: 0,
     totalDuration: 0,
-    selectedDuration: 15, // default 15 minutes
+    selectedDuration: (() => {
+      try {
+        const stored = localStorage.getItem("fv_default_duration");
+        if (stored) {
+          const parsed = Number.parseInt(stored, 10);
+          if (!Number.isNaN(parsed) && parsed > 0) return parsed;
+        }
+      } catch {
+        // ignore
+      }
+      return 15;
+    })(),
   });
 
   const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -69,29 +100,43 @@ export function MainPlayerProvider({ children }: { children: ReactNode }) {
 
   const startSleepTimer = useCallback(() => {
     clearSleepTimer();
-    
+
     const durationMs = state.selectedDuration * 60 * 1000;
     sleepTimerStartRef.current = Date.now();
     sleepTimerElapsedRef.current = 0;
 
+    // Initialize timeRemaining immediately
+    setState((prev) => ({ ...prev, timeRemaining: durationMs }));
+
     sleepTimerRef.current = setInterval(() => {
-      const elapsed = sleepTimerElapsedRef.current + (Date.now() - sleepTimerStartRef.current);
-      
+      const elapsed =
+        sleepTimerElapsedRef.current +
+        (Date.now() - sleepTimerStartRef.current);
+
+      const remaining = Math.max(0, durationMs - elapsed);
+
       if (elapsed >= durationMs) {
-        // Time expired - completely stop all audio
+        // Fire fade-out event before resetting state
+        window.dispatchEvent(new CustomEvent("fv:sleeptimer:expire"));
+        // Time expired - delay state reset by 3.2s to allow fade out
         clearSleepTimer();
-        setState(prev => ({
-          ...prev,
-          currentFrequency: null,
-          currentSoundId: null,
-          isPlaying: false,
-          isPaused: false,
-          queue: [],
-          currentIndex: 0,
-          timeRemaining: 0,
-          totalDuration: 0,
-          sessionName: undefined,
-        }));
+        setTimeout(() => {
+          setState((prev) => ({
+            ...prev,
+            currentFrequency: null,
+            currentSoundId: null,
+            isPlaying: false,
+            isPaused: false,
+            queue: [],
+            currentIndex: 0,
+            timeRemaining: 0,
+            totalDuration: 0,
+            sessionName: undefined,
+          }));
+        }, 3200);
+      } else {
+        // Update countdown
+        setState((prev) => ({ ...prev, timeRemaining: remaining }));
       }
     }, 1000);
   }, [state.selectedDuration, clearSleepTimer]);
@@ -110,85 +155,111 @@ export function MainPlayerProvider({ children }: { children: ReactNode }) {
       const durationMs = state.selectedDuration * 60 * 1000;
 
       sleepTimerRef.current = setInterval(() => {
-        const elapsed = sleepTimerElapsedRef.current + (Date.now() - sleepTimerStartRef.current);
-        
+        const elapsed =
+          sleepTimerElapsedRef.current +
+          (Date.now() - sleepTimerStartRef.current);
+
+        const remaining = Math.max(0, durationMs - elapsed);
+
         if (elapsed >= durationMs) {
-          // Time expired - completely stop all audio
+          // Fire fade-out event before resetting state
+          window.dispatchEvent(new CustomEvent("fv:sleeptimer:expire"));
+          // Time expired - delay state reset by 3.2s to allow fade out
           clearSleepTimer();
-          setState(prev => ({
-            ...prev,
-            currentFrequency: null,
-            currentSoundId: null,
-            isPlaying: false,
-            isPaused: false,
-            queue: [],
-            currentIndex: 0,
-            timeRemaining: 0,
-            totalDuration: 0,
-            sessionName: undefined,
-          }));
+          setTimeout(() => {
+            setState((prev) => ({
+              ...prev,
+              currentFrequency: null,
+              currentSoundId: null,
+              isPlaying: false,
+              isPaused: false,
+              queue: [],
+              currentIndex: 0,
+              timeRemaining: 0,
+              totalDuration: 0,
+              sessionName: undefined,
+            }));
+          }, 3200);
+        } else {
+          setState((prev) => ({ ...prev, timeRemaining: remaining }));
         }
       }, 1000);
     }
   }, [state.selectedDuration, clearSleepTimer]);
 
-  const playFrequency = useCallback((hz: number, mode: PlayMode = 'single') => {
-    setState(prev => ({
-      ...prev,
-      currentFrequency: hz,
-      currentSoundId: null,
-      isPlaying: true,
-      isPaused: false,
-      playMode: mode,
-      queue: mode === 'single' ? [{ type: 'frequency', id: hz }] : prev.queue,
-      currentIndex: mode === 'single' ? 0 : prev.currentIndex,
-    }));
-    startSleepTimer();
-  }, [startSleepTimer]);
+  const playFrequency = useCallback(
+    (hz: number, mode: PlayMode = "single") => {
+      setState((prev) => ({
+        ...prev,
+        currentFrequency: hz,
+        currentSoundId: null,
+        isPlaying: true,
+        isPaused: false,
+        playMode: mode,
+        queue: mode === "single" ? [{ type: "frequency", id: hz }] : prev.queue,
+        currentIndex: mode === "single" ? 0 : prev.currentIndex,
+      }));
+      startSleepTimer();
+    },
+    [startSleepTimer],
+  );
 
-  const playSound = useCallback((soundId: string, mode: PlayMode = 'single') => {
-    setState(prev => ({
-      ...prev,
-      currentFrequency: null,
-      currentSoundId: soundId,
-      isPlaying: true,
-      isPaused: false,
-      playMode: mode,
-      queue: mode === 'single' ? [{ type: 'sound', id: soundId }] : prev.queue,
-      currentIndex: mode === 'single' ? 0 : prev.currentIndex,
-    }));
-    startSleepTimer();
-  }, [startSleepTimer]);
+  const playSound = useCallback(
+    (soundId: string, mode: PlayMode = "single") => {
+      setState((prev) => ({
+        ...prev,
+        currentFrequency: null,
+        currentSoundId: soundId,
+        isPlaying: true,
+        isPaused: false,
+        playMode: mode,
+        queue:
+          mode === "single" ? [{ type: "sound", id: soundId }] : prev.queue,
+        currentIndex: mode === "single" ? 0 : prev.currentIndex,
+      }));
+      startSleepTimer();
+    },
+    [startSleepTimer],
+  );
 
-  const playQueue = useCallback((items: Array<{ type: 'frequency'; id: number } | { type: 'sound'; id: string }>, mode: PlayMode, sessionName?: string) => {
-    const firstItem = items[0];
-    setState(prev => ({
-      ...prev,
-      currentFrequency: firstItem.type === 'frequency' ? firstItem.id : null,
-      currentSoundId: firstItem.type === 'sound' ? firstItem.id : null,
-      isPlaying: true,
-      isPaused: false,
-      playMode: mode,
-      queue: items,
-      currentIndex: 0,
-      sessionName,
-    }));
-    startSleepTimer();
-  }, [startSleepTimer]);
+  const playQueue = useCallback(
+    (
+      items: Array<
+        { type: "frequency"; id: number } | { type: "sound"; id: string }
+      >,
+      mode: PlayMode,
+      sessionName?: string,
+    ) => {
+      const firstItem = items[0];
+      setState((prev) => ({
+        ...prev,
+        currentFrequency: firstItem.type === "frequency" ? firstItem.id : null,
+        currentSoundId: firstItem.type === "sound" ? firstItem.id : null,
+        isPlaying: true,
+        isPaused: false,
+        playMode: mode,
+        queue: items,
+        currentIndex: 0,
+        sessionName,
+      }));
+      startSleepTimer();
+    },
+    [startSleepTimer],
+  );
 
   const pause = useCallback(() => {
-    setState(prev => ({ ...prev, isPlaying: false, isPaused: true }));
+    setState((prev) => ({ ...prev, isPlaying: false, isPaused: true }));
     pauseSleepTimer();
   }, [pauseSleepTimer]);
 
   const resume = useCallback(() => {
-    setState(prev => ({ ...prev, isPlaying: true, isPaused: false }));
+    setState((prev) => ({ ...prev, isPlaying: true, isPaused: false }));
     resumeSleepTimer();
   }, [resumeSleepTimer]);
 
   const stop = useCallback(() => {
     clearSleepTimer();
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       currentFrequency: null,
       currentSoundId: null,
@@ -203,87 +274,114 @@ export function MainPlayerProvider({ children }: { children: ReactNode }) {
   }, [clearSleepTimer]);
 
   const next = useCallback(() => {
-    setState(prev => {
+    setState((prev) => {
       if (prev.queue.length === 0) return prev;
-      
-      let nextIndex = prev.currentIndex + 1;
-      
+
+      // Repeat one: stay on current item
+      if (prev.repeatMode === "one") {
+        return prev;
+      }
+
+      let nextIndex: number;
+
+      if (prev.shuffleEnabled && prev.queue.length > 1) {
+        // Pick a random index different from current
+        let randomIndex: number;
+        do {
+          randomIndex = Math.floor(Math.random() * prev.queue.length);
+        } while (randomIndex === prev.currentIndex);
+        nextIndex = randomIndex;
+      } else {
+        nextIndex = prev.currentIndex + 1;
+      }
+
       if (nextIndex >= prev.queue.length) {
-        if (prev.repeatMode === 'all') {
+        if (prev.repeatMode === "all") {
           nextIndex = 0;
         } else {
           return { ...prev, isPlaying: false, isPaused: false };
         }
       }
-      
+
       const nextItem = prev.queue[nextIndex];
       return {
         ...prev,
         currentIndex: nextIndex,
-        currentFrequency: nextItem.type === 'frequency' ? nextItem.id : null,
-        currentSoundId: nextItem.type === 'sound' ? nextItem.id : null,
+        currentFrequency: nextItem.type === "frequency" ? nextItem.id : null,
+        currentSoundId: nextItem.type === "sound" ? nextItem.id : null,
       };
     });
   }, []);
 
   const previous = useCallback(() => {
-    setState(prev => {
+    setState((prev) => {
       if (prev.queue.length === 0) return prev;
-      
+
       let prevIndex = prev.currentIndex - 1;
-      
+
       if (prevIndex < 0) {
         prevIndex = prev.queue.length - 1;
       }
-      
+
       const prevItem = prev.queue[prevIndex];
       return {
         ...prev,
         currentIndex: prevIndex,
-        currentFrequency: prevItem.type === 'frequency' ? prevItem.id : null,
-        currentSoundId: prevItem.type === 'sound' ? prevItem.id : null,
+        currentFrequency: prevItem.type === "frequency" ? prevItem.id : null,
+        currentSoundId: prevItem.type === "sound" ? prevItem.id : null,
       };
     });
   }, []);
 
   const toggleRepeat = useCallback(() => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      repeatMode: prev.repeatMode === 'off' ? 'all' : prev.repeatMode === 'all' ? 'one' : 'off',
+      repeatMode:
+        prev.repeatMode === "off"
+          ? "all"
+          : prev.repeatMode === "all"
+            ? "one"
+            : "off",
     }));
   }, []);
 
   const toggleShuffle = useCallback(() => {
-    setState(prev => ({ ...prev, shuffleEnabled: !prev.shuffleEnabled }));
+    setState((prev) => ({ ...prev, shuffleEnabled: !prev.shuffleEnabled }));
   }, []);
 
-  const setTimeRemaining = useCallback((timeOrUpdater: number | ((prev: number) => number)) => {
-    setState(prev => ({
-      ...prev,
-      timeRemaining: typeof timeOrUpdater === 'function' ? timeOrUpdater(prev.timeRemaining) : timeOrUpdater,
-    }));
-  }, []);
+  const setTimeRemaining = useCallback(
+    (timeOrUpdater: number | ((prev: number) => number)) => {
+      setState((prev) => ({
+        ...prev,
+        timeRemaining:
+          typeof timeOrUpdater === "function"
+            ? timeOrUpdater(prev.timeRemaining)
+            : timeOrUpdater,
+      }));
+    },
+    [],
+  );
 
   const setTotalDuration = useCallback((duration: number) => {
-    setState(prev => ({ ...prev, totalDuration: duration }));
+    setState((prev) => ({ ...prev, totalDuration: duration }));
   }, []);
 
   const updateCurrentIndex = useCallback((index: number) => {
-    setState(prev => {
+    setState((prev) => {
       const item = prev.queue[index];
       if (!item) return prev;
-      
+
       return {
         ...prev,
         currentIndex: index,
-        currentFrequency: item.type === 'frequency' ? item.id : null,
-        currentSoundId: item.type === 'sound' ? item.id : null,
+        currentFrequency: item.type === "frequency" ? item.id : null,
+        currentSoundId: item.type === "sound" ? item.id : null,
       };
     });
   }, []);
 
   const setSelectedDuration = useCallback((duration: number) => {
-    setState(prev => ({ ...prev, selectedDuration: duration }));
+    setState((prev) => ({ ...prev, selectedDuration: duration }));
   }, []);
 
   // Cleanup on unmount
@@ -321,7 +419,7 @@ export function MainPlayerProvider({ children }: { children: ReactNode }) {
 export function useMainPlayer() {
   const context = useContext(MainPlayerContext);
   if (!context) {
-    throw new Error('useMainPlayer must be used within MainPlayerProvider');
+    throw new Error("useMainPlayer must be used within MainPlayerProvider");
   }
   return context;
 }

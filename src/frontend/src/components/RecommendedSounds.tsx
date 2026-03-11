@@ -1,21 +1,24 @@
-import { useState, useEffect } from 'react';
-import { useLanguage } from '../hooks/useLanguage';
-import { useMainPlayer } from '../hooks/useMainPlayer';
-import { useUnifiedSessionManager } from '../hooks/useUnifiedSessionManager';
-import { useUnifiedPlaylistManager } from '../hooks/useUnifiedPlaylistManager';
-import { RecommendedItem } from '../lib/moodRecommendations';
-import { MoodType } from '../lib/moods';
-import { kidsSleepSounds } from '../lib/kidsSleepSounds';
-import { peacefulSounds } from '../lib/peacefulSounds';
-import { Button } from '@/components/ui/button';
-import { Play, Plus, Check, Sparkles } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Check, Play, Plus, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLanguage } from "../hooks/useLanguage";
+import { useMainPlayer } from "../hooks/useMainPlayer";
+import { useUnifiedPlaylistManager } from "../hooks/useUnifiedPlaylistManager";
+import { useUnifiedSessionManager } from "../hooks/useUnifiedSessionManager";
+import { kidsSleepSounds } from "../lib/kidsSleepSounds";
+import type { RecommendedItem } from "../lib/moodRecommendations";
+import type { MoodType } from "../lib/moods";
+import { peacefulSounds } from "../lib/peacefulSounds";
 
 interface RecommendedSoundsProps {
   recommendations: RecommendedItem[];
   moodType: MoodType;
 }
 
-export default function RecommendedSounds({ recommendations, moodType }: RecommendedSoundsProps) {
+export default function RecommendedSounds({
+  recommendations,
+  moodType,
+}: RecommendedSoundsProps) {
   const { t } = useLanguage();
   const player = useMainPlayer();
   const sessionManager = useUnifiedSessionManager();
@@ -24,46 +27,45 @@ export default function RecommendedSounds({ recommendations, moodType }: Recomme
 
   // Clear recently added state when items are removed from playlist
   useEffect(() => {
-    const newRecentlyAdded = new Set<string>();
-    recentlyAdded.forEach(key => {
-      const [type, id] = key.split('-');
-      const isStillInPlaylist = type === 'frequency' 
-        ? playlistManager.isFrequencyInPlaylist(Number(id))
-        : playlistManager.isSoundInPlaylist(id);
-      
-      if (isStillInPlaylist) {
-        newRecentlyAdded.add(key);
+    setRecentlyAdded((prev) => {
+      const newRecentlyAdded = new Set<string>();
+      for (const key of prev) {
+        const [type, id] = key.split("-");
+        const isStillInPlaylist =
+          type === "frequency"
+            ? playlistManager.isFrequencyInPlaylist(Number(id))
+            : playlistManager.isSoundInPlaylist(id);
+        if (isStillInPlaylist) {
+          newRecentlyAdded.add(key);
+        }
       }
+      if (newRecentlyAdded.size === prev.size) return prev;
+      return newRecentlyAdded;
     });
-    
-    if (newRecentlyAdded.size !== recentlyAdded.size) {
-      setRecentlyAdded(newRecentlyAdded);
-    }
-  }, [player.queue, playlistManager, recentlyAdded]);
+  }, [playlistManager]);
 
   const getItemName = (item: RecommendedItem): string => {
-    if (item.type === 'frequency') {
+    if (item.type === "frequency") {
       return `${item.id} Hz`;
-    } else {
-      const soundId = item.id as string;
-      const kidsSound = kidsSleepSounds.find(s => s.id === soundId);
-      if (kidsSound) {
-        const category = kidsSound.category;
-        return t.kidsSleepSounds[category][kidsSound.title];
-      }
-      const peacefulSound = peacefulSounds.find(s => s.id === soundId);
-      if (peacefulSound) {
-        return t.peacefulSounds[peacefulSound.title];
-      }
-      return soundId;
     }
+    const soundId = item.id as string;
+    const kidsSound = kidsSleepSounds.find((s) => s.id === soundId);
+    if (kidsSound) {
+      const category = kidsSound.category;
+      return t.kidsSleepSounds[category][kidsSound.title];
+    }
+    const peacefulSound = peacefulSounds.find((s) => s.id === soundId);
+    if (peacefulSound) {
+      return t.peacefulSounds[peacefulSound.title];
+    }
+    return soundId;
   };
 
   const getItemDescription = (item: RecommendedItem): string => {
-    if (item.type === 'frequency') {
+    if (item.type === "frequency") {
       return t.frequencies[item.id as number];
     }
-    return '';
+    return "";
   };
 
   const handlePlay = (item: RecommendedItem) => {
@@ -74,28 +76,28 @@ export default function RecommendedSounds({ recommendations, moodType }: Recomme
       playlistManager.stopPlaylist();
     }
 
-    if (item.type === 'frequency') {
-      player.playFrequency(item.id as number, 'single');
+    if (item.type === "frequency") {
+      player.playFrequency(item.id as number, "single");
     } else {
-      player.playSound(item.id as string, 'single');
+      player.playSound(item.id as string, "single");
     }
   };
 
   const handleAddToPlaylist = (item: RecommendedItem) => {
     const key = `${item.type}-${item.id}`;
-    
-    if (item.type === 'frequency') {
+
+    if (item.type === "frequency") {
       playlistManager.addFrequencyToPlaylist(item.id as number);
     } else {
       playlistManager.addSoundToPlaylist(item.id as string);
     }
-    
+
     // Show temporary checkmark
-    setRecentlyAdded(prev => new Set(prev).add(key));
-    
+    setRecentlyAdded((prev) => new Set(prev).add(key));
+
     // Remove temporary checkmark after 2 seconds
     setTimeout(() => {
-      setRecentlyAdded(prev => {
+      setRecentlyAdded((prev) => {
         const newSet = new Set(prev);
         newSet.delete(key);
         return newSet;
@@ -108,27 +110,26 @@ export default function RecommendedSounds({ recommendations, moodType }: Recomme
       playlistManager.stopPlaylist();
     }
 
-    if (item.type === 'frequency') {
+    if (item.type === "frequency") {
       const frequencies = [item.id as number];
       const session = {
         id: `mood-${moodType}-${item.id}`,
         nameKey: moodType,
         frequencies,
-        durationPerFrequency: 180
+        durationPerFrequency: 180,
       };
       sessionManager.startSession(session);
     } else {
       // For sounds, create a single-item queue
-      player.playSound(item.id as string, 'single');
+      player.playSound(item.id as string, "single");
     }
   };
 
   const isInPlaylist = (item: RecommendedItem): boolean => {
-    if (item.type === 'frequency') {
+    if (item.type === "frequency") {
       return playlistManager.isFrequencyInPlaylist(item.id as number);
-    } else {
-      return playlistManager.isSoundInPlaylist(item.id as string);
     }
+    return playlistManager.isSoundInPlaylist(item.id as string);
   };
 
   const showCheckmark = (item: RecommendedItem): boolean => {
@@ -142,7 +143,7 @@ export default function RecommendedSounds({ recommendations, moodType }: Recomme
         <Sparkles className="w-6 h-6 text-yellow-300" />
         {t.moodSpace.recommendedSounds}
       </h3>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {recommendations.map((item, index) => (
           <div
@@ -153,7 +154,7 @@ export default function RecommendedSounds({ recommendations, moodType }: Recomme
               <h4 className="text-white font-semibold text-lg mb-1">
                 {getItemName(item)}
               </h4>
-              {item.type === 'frequency' && (
+              {item.type === "frequency" && (
                 <p className="text-white/70 text-sm">
                   {getItemDescription(item)}
                 </p>
@@ -177,8 +178,8 @@ export default function RecommendedSounds({ recommendations, moodType }: Recomme
                 variant="outline"
                 className={`flex items-center gap-1 transition-all duration-300 ${
                   showCheckmark(item)
-                    ? 'bg-green-400/20 border-green-400/40 text-green-300 hover:bg-green-400/30'
-                    : 'hover:bg-white/10'
+                    ? "bg-green-400/20 border-green-400/40 text-green-300 hover:bg-green-400/30"
+                    : "hover:bg-white/10"
                 }`}
               >
                 {showCheckmark(item) ? (
@@ -194,7 +195,7 @@ export default function RecommendedSounds({ recommendations, moodType }: Recomme
                 )}
               </Button>
 
-              {item.type === 'frequency' && (
+              {item.type === "frequency" && (
                 <Button
                   onClick={() => handleStartSession(item)}
                   size="sm"

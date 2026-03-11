@@ -1,6 +1,11 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { type ReactNode, createContext, useContext, useState } from "react";
 
-export type VisualTheme = 'aurora-glow' | 'celestial-calm' | 'sacred-lotus' | 'ethereal-waves' | 'zen-garden';
+export type VisualTheme =
+  | "aurora-glow"
+  | "celestial-calm"
+  | "sacred-lotus"
+  | "ethereal-waves"
+  | "zen-garden";
 
 interface ThemeContextType {
   theme: VisualTheme;
@@ -9,8 +14,8 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_STORAGE_KEY = 'frequencyverse-visual-theme';
-const DEFAULT_THEME: VisualTheme = 'aurora-glow';
+const THEME_STORAGE_KEY = "frequencyverse-visual-theme";
+const DEFAULT_THEME: VisualTheme = "aurora-glow";
 
 // Safe localStorage access with fallback
 function getStoredTheme(): VisualTheme {
@@ -20,20 +25,26 @@ function getStoredTheme(): VisualTheme {
       return stored as VisualTheme;
     }
   } catch (error) {
-    console.warn('⚠️ [THEME] Failed to read from localStorage:', error);
+    console.warn("⚠️ [THEME] Failed to read from localStorage:", error);
   }
   return DEFAULT_THEME;
 }
 
 function isValidTheme(value: string): boolean {
-  return ['aurora-glow', 'celestial-calm', 'sacred-lotus', 'ethereal-waves', 'zen-garden'].includes(value);
+  return [
+    "aurora-glow",
+    "celestial-calm",
+    "sacred-lotus",
+    "ethereal-waves",
+    "zen-garden",
+  ].includes(value);
 }
 
 function saveTheme(theme: VisualTheme): void {
   try {
     localStorage.setItem(THEME_STORAGE_KEY, theme);
   } catch (error) {
-    console.warn('⚠️ [THEME] Failed to write to localStorage:', error);
+    console.warn("⚠️ [THEME] Failed to write to localStorage:", error);
   }
 }
 
@@ -55,7 +66,7 @@ export function VisualThemeProvider({ children }: { children: ReactNode }) {
 export function useVisualTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error('useVisualTheme must be used within a VisualThemeProvider');
+    throw new Error("useVisualTheme must be used within a VisualThemeProvider");
   }
   return context;
 }

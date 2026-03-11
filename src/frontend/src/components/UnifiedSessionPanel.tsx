@@ -1,9 +1,9 @@
-import { Play, Pause, Square, Clock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { predefinedSessions } from '../hooks/useUnifiedSessionManager';
-import { useMainPlayer } from '../hooks/useMainPlayer';
-import { useLanguage } from '../hooks/useLanguage';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Clock, Pause, Play, Square } from "lucide-react";
+import { useLanguage } from "../hooks/useLanguage";
+import { useMainPlayer } from "../hooks/useMainPlayer";
+import { predefinedSessions } from "../hooks/useUnifiedSessionManager";
 
 interface SessionPanelProps {
   sessionManager: {
@@ -15,14 +15,16 @@ interface SessionPanelProps {
   };
 }
 
-export default function UnifiedSessionPanel({ sessionManager }: SessionPanelProps) {
+export default function UnifiedSessionPanel({
+  sessionManager,
+}: SessionPanelProps) {
   const player = useMainPlayer();
   const { t } = useLanguage();
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const getSessionName = (nameKey: string) => {
@@ -51,18 +53,17 @@ export default function UnifiedSessionPanel({ sessionManager }: SessionPanelProp
               </div>
               <div className="flex items-center gap-2 text-white/80 text-sm mb-3">
                 <span>
-                  {t.sessions.frequency} {player.currentIndex + 1} {t.sessions.of} {player.queue.length}
+                  {t.sessions.frequency} {player.currentIndex + 1}{" "}
+                  {t.sessions.of} {player.queue.length}
                 </span>
                 <span>•</span>
-                <span>
-                  {player.currentFrequency} Hz
-                </span>
+                <span>{player.currentFrequency} Hz</span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                <div 
+                <div
                   className="bg-gradient-to-r from-purple-400 to-pink-400 h-full transition-all duration-1000"
                   style={{
-                    width: `${((player.totalDuration - player.timeRemaining) / player.totalDuration) * 100}%`
+                    width: `${((player.totalDuration - player.timeRemaining) / player.totalDuration) * 100}%`,
                   }}
                 />
               </div>
@@ -107,7 +108,9 @@ export default function UnifiedSessionPanel({ sessionManager }: SessionPanelProp
                   variant="outline"
                   className="h-auto py-3 px-4 flex flex-col items-start gap-1 bg-white/5 hover:bg-white/10 border-white/20 text-white"
                 >
-                  <span className="font-semibold">{getSessionName(session.nameKey)}</span>
+                  <span className="font-semibold">
+                    {getSessionName(session.nameKey)}
+                  </span>
                   <span className="text-xs text-white/70">
                     {session.frequencies.length} {t.sessions.frequencies}
                   </span>

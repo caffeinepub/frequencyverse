@@ -1,4 +1,12 @@
-import { createContext, useContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
+import {
+  type ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 interface AudioActivationContextType {
   isAudioActivated: boolean;
@@ -6,7 +14,9 @@ interface AudioActivationContextType {
   showActivationIndicator: boolean;
 }
 
-const AudioActivationContext = createContext<AudioActivationContextType | undefined>(undefined);
+const AudioActivationContext = createContext<
+  AudioActivationContextType | undefined
+>(undefined);
 
 export function AudioActivationProvider({ children }: { children: ReactNode }) {
   const [isAudioActivated, setIsAudioActivated] = useState(false);
@@ -14,75 +24,80 @@ export function AudioActivationProvider({ children }: { children: ReactNode }) {
   const [indicatorPosition, setIndicatorPosition] = useState({ x: 0, y: 0 });
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  const activateAudio = useCallback((event?: TouchEvent | MouseEvent) => {
-    if (isAudioActivated) return;
+  const activateAudio = useCallback(
+    (event?: TouchEvent | MouseEvent) => {
+      if (isAudioActivated) return;
 
-    // Capture touch/click position for visual indicator
-    if (event) {
-      const x = 'touches' in event ? event.touches[0].clientX : event.clientX;
-      const y = 'touches' in event ? event.touches[0].clientY : event.clientY;
-      setIndicatorPosition({ x, y });
-    }
-
-    // Create and unlock Web Audio API context
-    if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-    }
-
-    const context = audioContextRef.current;
-
-    // Resume context if suspended
-    if (context.state === 'suspended') {
-      context.resume();
-    }
-
-    // Play ultra-short silent audio to unlock audio playback
-    const oscillator = context.createOscillator();
-    const gainNode = context.createGain();
-
-    oscillator.frequency.setValueAtTime(440, context.currentTime);
-    gainNode.gain.setValueAtTime(0.001, context.currentTime); // Nearly silent
-
-    oscillator.connect(gainNode);
-    gainNode.connect(context.destination);
-
-    oscillator.start(context.currentTime);
-    oscillator.stop(context.currentTime + 0.01); // 10ms duration
-
-    // Clean up
-    setTimeout(() => {
-      try {
-        oscillator.disconnect();
-        gainNode.disconnect();
-      } catch (e) {
-        // Ignore cleanup errors
+      // Capture touch/click position for visual indicator
+      if (event) {
+        const x = "touches" in event ? event.touches[0].clientX : event.clientX;
+        const y = "touches" in event ? event.touches[0].clientY : event.clientY;
+        setIndicatorPosition({ x, y });
       }
-    }, 100);
 
-    // Show visual indicator
-    setShowActivationIndicator(true);
-    setTimeout(() => {
-      setShowActivationIndicator(false);
-    }, 800);
+      // Create and unlock Web Audio API context
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (
+          window.AudioContext || (window as any).webkitAudioContext
+        )();
+      }
 
-    setIsAudioActivated(true);
+      const context = audioContextRef.current;
 
-    // Store activation state in localStorage
-    try {
-      localStorage.setItem('audioActivated', 'true');
-    } catch (e) {
-      // Ignore localStorage errors
-    }
-  }, [isAudioActivated]);
+      // Resume context if suspended
+      if (context.state === "suspended") {
+        context.resume();
+      }
+
+      // Play ultra-short silent audio to unlock audio playback
+      const oscillator = context.createOscillator();
+      const gainNode = context.createGain();
+
+      oscillator.frequency.setValueAtTime(440, context.currentTime);
+      gainNode.gain.setValueAtTime(0.001, context.currentTime); // Nearly silent
+
+      oscillator.connect(gainNode);
+      gainNode.connect(context.destination);
+
+      oscillator.start(context.currentTime);
+      oscillator.stop(context.currentTime + 0.01); // 10ms duration
+
+      // Clean up
+      setTimeout(() => {
+        try {
+          oscillator.disconnect();
+          gainNode.disconnect();
+        } catch (_e) {
+          // Ignore cleanup errors
+        }
+      }, 100);
+
+      // Show visual indicator
+      setShowActivationIndicator(true);
+      setTimeout(() => {
+        setShowActivationIndicator(false);
+      }, 800);
+
+      setIsAudioActivated(true);
+
+      // Store activation state in localStorage
+      try {
+        localStorage.setItem("audioActivated", "true");
+      } catch (_e) {
+        // Ignore localStorage errors
+      }
+    },
+    [isAudioActivated],
+  );
 
   // Check if audio was previously activated
   useEffect(() => {
     try {
-      const wasActivated = localStorage.getItem('audioActivated') === 'true';
+      const wasActivated = localStorage.getItem("audioActivated") === "true";
       if (wasActivated) {
         setIsAudioActivated(true);
       }
-    } catch (e) {
+    } catch (_e) {
       // Ignore localStorage errors
     }
   }, []);
@@ -96,17 +111,22 @@ export function AudioActivationProvider({ children }: { children: ReactNode }) {
     };
 
     // Listen for both touch and click events
-    document.addEventListener('touchstart', handleFirstInteraction, { once: true, passive: true });
-    document.addEventListener('click', handleFirstInteraction, { once: true });
+    document.addEventListener("touchstart", handleFirstInteraction, {
+      once: true,
+      passive: true,
+    });
+    document.addEventListener("click", handleFirstInteraction, { once: true });
 
     return () => {
-      document.removeEventListener('touchstart', handleFirstInteraction);
-      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener("touchstart", handleFirstInteraction);
+      document.removeEventListener("click", handleFirstInteraction);
     };
   }, [isAudioActivated, activateAudio]);
 
   return (
-    <AudioActivationContext.Provider value={{ isAudioActivated, activateAudio, showActivationIndicator }}>
+    <AudioActivationContext.Provider
+      value={{ isAudioActivated, activateAudio, showActivationIndicator }}
+    >
       {children}
       {/* Visual activation indicator */}
       {showActivationIndicator && (
@@ -115,7 +135,7 @@ export function AudioActivationProvider({ children }: { children: ReactNode }) {
           style={{
             left: `${indicatorPosition.x}px`,
             top: `${indicatorPosition.y}px`,
-            transform: 'translate(-50%, -50%)',
+            transform: "translate(-50%, -50%)",
           }}
         >
           <div className="relative w-16 h-16">
@@ -136,7 +156,9 @@ export function AudioActivationProvider({ children }: { children: ReactNode }) {
 export function useAudioActivation() {
   const context = useContext(AudioActivationContext);
   if (!context) {
-    throw new Error('useAudioActivation must be used within AudioActivationProvider');
+    throw new Error(
+      "useAudioActivation must be used within AudioActivationProvider",
+    );
   }
   return context;
 }

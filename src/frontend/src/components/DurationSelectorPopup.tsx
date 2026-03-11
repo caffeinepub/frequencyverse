@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { useLanguage } from '../hooks/useLanguage';
-import { useVisualTheme } from '../hooks/useTheme';
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "../hooks/useLanguage";
+import { useVisualTheme } from "../hooks/useTheme";
 
 interface DurationSelectorPopupProps {
   isOpen: boolean;
@@ -29,7 +29,7 @@ export default function DurationSelectorPopup({
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === "Escape" && isOpen) {
         onClose();
       }
     };
@@ -41,13 +41,13 @@ export default function DurationSelectorPopup({
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen, onClose]);
 
@@ -62,41 +62,41 @@ export default function DurationSelectorPopup({
   // Theme-adaptive gradient backgrounds and glow colors
   const getThemeStyles = () => {
     switch (theme) {
-      case 'aurora-glow':
+      case "aurora-glow":
         return {
-          gradient: 'from-purple-900/95 via-indigo-900/95 to-blue-900/95',
-          glow: 'shadow-[0_0_40px_rgba(139,92,246,0.5)]',
-          border: 'border-purple-500/50',
+          gradient: "from-purple-900/95 via-indigo-900/95 to-blue-900/95",
+          glow: "shadow-[0_0_40px_rgba(139,92,246,0.5)]",
+          border: "border-purple-500/50",
         };
-      case 'celestial-calm':
+      case "celestial-calm":
         return {
-          gradient: 'from-indigo-950/95 via-blue-950/95 to-slate-900/95',
-          glow: 'shadow-[0_0_40px_rgba(99,102,241,0.5)]',
-          border: 'border-indigo-500/50',
+          gradient: "from-indigo-950/95 via-blue-950/95 to-slate-900/95",
+          glow: "shadow-[0_0_40px_rgba(99,102,241,0.5)]",
+          border: "border-indigo-500/50",
         };
-      case 'sacred-lotus':
+      case "sacred-lotus":
         return {
-          gradient: 'from-teal-900/95 via-emerald-900/95 to-green-900/95',
-          glow: 'shadow-[0_0_40px_rgba(20,184,166,0.5)]',
-          border: 'border-teal-500/50',
+          gradient: "from-teal-900/95 via-emerald-900/95 to-green-900/95",
+          glow: "shadow-[0_0_40px_rgba(20,184,166,0.5)]",
+          border: "border-teal-500/50",
         };
-      case 'ethereal-waves':
+      case "ethereal-waves":
         return {
-          gradient: 'from-violet-900/95 via-fuchsia-900/95 to-pink-900/95',
-          glow: 'shadow-[0_0_40px_rgba(192,132,252,0.5)]',
-          border: 'border-violet-500/50',
+          gradient: "from-violet-900/95 via-fuchsia-900/95 to-pink-900/95",
+          glow: "shadow-[0_0_40px_rgba(192,132,252,0.5)]",
+          border: "border-violet-500/50",
         };
-      case 'zen-garden':
+      case "zen-garden":
         return {
-          gradient: 'from-slate-800/95 via-gray-800/95 to-stone-800/95',
-          glow: 'shadow-[0_0_40px_rgba(148,163,184,0.5)]',
-          border: 'border-slate-500/50',
+          gradient: "from-slate-800/95 via-gray-800/95 to-stone-800/95",
+          glow: "shadow-[0_0_40px_rgba(148,163,184,0.5)]",
+          border: "border-slate-500/50",
         };
       default:
         return {
-          gradient: 'from-purple-900/95 via-indigo-900/95 to-blue-900/95',
-          glow: 'shadow-[0_0_40px_rgba(139,92,246,0.5)]',
-          border: 'border-purple-500/50',
+          gradient: "from-purple-900/95 via-indigo-900/95 to-blue-900/95",
+          glow: "shadow-[0_0_40px_rgba(139,92,246,0.5)]",
+          border: "border-purple-500/50",
         };
     }
   };
@@ -146,13 +146,15 @@ export default function DurationSelectorPopup({
             step={0.5}
             className="w-full touch-manipulation"
           />
-          
+
           {/* Tick marks - Responsive */}
           <div className="flex justify-between mt-3 px-1">
             {tickMarks.map((tick) => (
               <div key={tick} className="flex flex-col items-center">
                 <div className="w-px h-2 bg-white/40" />
-                <span className="text-[10px] sm:text-xs text-white/70 mt-1 drop-shadow-sm">{tick}</span>
+                <span className="text-[10px] sm:text-xs text-white/70 mt-1 drop-shadow-sm">
+                  {tick}
+                </span>
               </div>
             ))}
           </div>

@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { moods, MoodType } from '../lib/moods';
-import { moodRecommendations } from '../lib/moodRecommendations';
-import { useLanguage } from '../hooks/useLanguage';
-import RecommendedSounds from './RecommendedSounds';
+import { useState } from "react";
+import { useLanguage } from "../hooks/useLanguage";
+import { moodRecommendations } from "../lib/moodRecommendations";
+import { type MoodType, moods } from "../lib/moods";
+import RecommendedSounds from "./RecommendedSounds";
 
 export default function MoodSpace() {
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
@@ -29,30 +29,33 @@ export default function MoodSpace() {
           {moods.map((mood) => (
             <button
               key={mood.id}
+              type="button"
               onClick={() => handleMoodSelect(mood.id)}
               className={`
                 relative flex flex-col items-center justify-center p-4 rounded-2xl
                 transition-all duration-300 transform hover:scale-105
-                ${selectedMood === mood.id 
-                  ? 'bg-white/20 backdrop-blur-md ring-2 ring-white/50 scale-105' 
-                  : 'bg-white/10 backdrop-blur-sm hover:bg-white/15'
+                ${
+                  selectedMood === mood.id
+                    ? "bg-white/20 backdrop-blur-md ring-2 ring-white/50 scale-105"
+                    : "bg-white/10 backdrop-blur-sm hover:bg-white/15"
                 }
               `}
               style={{
-                boxShadow: selectedMood === mood.id 
-                  ? `0 0 30px ${mood.glowColor}, 0 0 60px ${mood.glowColor}` 
-                  : `0 0 15px ${mood.glowColor}`,
+                boxShadow:
+                  selectedMood === mood.id
+                    ? `0 0 30px ${mood.glowColor}, 0 0 60px ${mood.glowColor}`
+                    : `0 0 15px ${mood.glowColor}`,
               }}
             >
-              <div 
+              <div
                 className="w-16 h-16 rounded-full mb-3 flex items-center justify-center overflow-hidden"
                 style={{
                   boxShadow: `0 0 20px ${mood.glowColor}, inset 0 0 20px ${mood.glowColor}`,
                   background: `radial-gradient(circle, ${mood.glowColor} 0%, transparent 70%)`,
                 }}
               >
-                <img 
-                  src={mood.icon} 
+                <img
+                  src={mood.icon}
                   alt={t.moodSpace.moods[mood.id]}
                   className="w-12 h-12 object-contain"
                 />
@@ -67,7 +70,7 @@ export default function MoodSpace() {
 
       {/* Recommended Sounds Section */}
       {selectedMood && (
-        <RecommendedSounds 
+        <RecommendedSounds
           recommendations={recommendations}
           moodType={selectedMood}
         />

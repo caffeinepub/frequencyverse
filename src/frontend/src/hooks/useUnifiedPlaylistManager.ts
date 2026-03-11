@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useMainPlayer } from './useMainPlayer';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useMainPlayer } from "./useMainPlayer";
 
 export interface PlaylistItem {
-  type: 'frequency' | 'sound';
+  type: "frequency" | "sound";
   id: number | string;
 }
 
@@ -17,79 +17,115 @@ export function useUnifiedPlaylistManager() {
   // Use player.queue as the source of truth for the playlist
   const playlist = player.queue;
 
-  const addFrequencyToPlaylist = useCallback((hz: number) => {
-    const exists = player.queue.some(item => item.type === 'frequency' && item.id === hz);
-    if (exists) {
-      return; // Already in playlist, don't add duplicate
-    }
-    
-    const newQueue = [...player.queue, { type: 'frequency' as const, id: hz }];
-    
-    // If nothing is playing, just update the queue without starting playback
-    if (!player.isPlaying && !isPlaylistActive) {
-      player.playQueue(newQueue, 'playlist');
-      player.pause(); // Immediately pause to just update the queue
-    } else {
-      // Update queue while maintaining current playback
-      player.playQueue(newQueue, player.playMode, player.sessionName);
-      if (player.currentIndex >= 0) {
-        player.updateCurrentIndex(player.currentIndex);
+  const addFrequencyToPlaylist = useCallback(
+    (hz: number) => {
+      const exists = player.queue.some(
+        (item) => item.type === "frequency" && item.id === hz,
+      );
+      if (exists) {
+        return; // Already in playlist, don't add duplicate
       }
-    }
-  }, [player, isPlaylistActive]);
 
-  const addSoundToPlaylist = useCallback((soundId: string) => {
-    const exists = player.queue.some(item => item.type === 'sound' && item.id === soundId);
-    if (exists) {
-      return; // Already in playlist, don't add duplicate
-    }
-    
-    const newQueue = [...player.queue, { type: 'sound' as const, id: soundId }];
-    
-    // If nothing is playing, just update the queue without starting playback
-    if (!player.isPlaying && !isPlaylistActive) {
-      player.playQueue(newQueue, 'playlist');
-      player.pause(); // Immediately pause to just update the queue
-    } else {
-      // Update queue while maintaining current playback
-      player.playQueue(newQueue, player.playMode, player.sessionName);
-      if (player.currentIndex >= 0) {
-        player.updateCurrentIndex(player.currentIndex);
+      const newQueue = [
+        ...player.queue,
+        { type: "frequency" as const, id: hz },
+      ];
+
+      // If nothing is playing, just update the queue without starting playback
+      if (!player.isPlaying && !isPlaylistActive) {
+        player.playQueue(newQueue, "playlist");
+        player.pause(); // Immediately pause to just update the queue
+      } else {
+        // Update queue while maintaining current playback
+        player.playQueue(newQueue, player.playMode, player.sessionName);
+        if (player.currentIndex >= 0) {
+          player.updateCurrentIndex(player.currentIndex);
+        }
       }
-    }
-  }, [player, isPlaylistActive]);
+    },
+    [player, isPlaylistActive],
+  );
 
-  const removeFrequencyFromPlaylist = useCallback((hz: number) => {
-    const newQueue = player.queue.filter(item => !(item.type === 'frequency' && item.id === hz));
-    if (newQueue.length > 0) {
-      player.playQueue(newQueue, player.playMode, player.sessionName);
-      if (player.currentIndex >= newQueue.length) {
-        player.updateCurrentIndex(Math.max(0, newQueue.length - 1));
+  const addSoundToPlaylist = useCallback(
+    (soundId: string) => {
+      const exists = player.queue.some(
+        (item) => item.type === "sound" && item.id === soundId,
+      );
+      if (exists) {
+        return; // Already in playlist, don't add duplicate
       }
-    } else {
-      player.stop();
-    }
-  }, [player]);
 
-  const removeSoundFromPlaylist = useCallback((soundId: string) => {
-    const newQueue = player.queue.filter(item => !(item.type === 'sound' && item.id === soundId));
-    if (newQueue.length > 0) {
-      player.playQueue(newQueue, player.playMode, player.sessionName);
-      if (player.currentIndex >= newQueue.length) {
-        player.updateCurrentIndex(Math.max(0, newQueue.length - 1));
+      const newQueue = [
+        ...player.queue,
+        { type: "sound" as const, id: soundId },
+      ];
+
+      // If nothing is playing, just update the queue without starting playback
+      if (!player.isPlaying && !isPlaylistActive) {
+        player.playQueue(newQueue, "playlist");
+        player.pause(); // Immediately pause to just update the queue
+      } else {
+        // Update queue while maintaining current playback
+        player.playQueue(newQueue, player.playMode, player.sessionName);
+        if (player.currentIndex >= 0) {
+          player.updateCurrentIndex(player.currentIndex);
+        }
       }
-    } else {
-      player.stop();
-    }
-  }, [player]);
+    },
+    [player, isPlaylistActive],
+  );
 
-  const isFrequencyInPlaylist = useCallback((hz: number) => {
-    return player.queue.some(item => item.type === 'frequency' && item.id === hz);
-  }, [player.queue]);
+  const removeFrequencyFromPlaylist = useCallback(
+    (hz: number) => {
+      const newQueue = player.queue.filter(
+        (item) => !(item.type === "frequency" && item.id === hz),
+      );
+      if (newQueue.length > 0) {
+        player.playQueue(newQueue, player.playMode, player.sessionName);
+        if (player.currentIndex >= newQueue.length) {
+          player.updateCurrentIndex(Math.max(0, newQueue.length - 1));
+        }
+      } else {
+        player.stop();
+      }
+    },
+    [player],
+  );
 
-  const isSoundInPlaylist = useCallback((soundId: string) => {
-    return player.queue.some(item => item.type === 'sound' && item.id === soundId);
-  }, [player.queue]);
+  const removeSoundFromPlaylist = useCallback(
+    (soundId: string) => {
+      const newQueue = player.queue.filter(
+        (item) => !(item.type === "sound" && item.id === soundId),
+      );
+      if (newQueue.length > 0) {
+        player.playQueue(newQueue, player.playMode, player.sessionName);
+        if (player.currentIndex >= newQueue.length) {
+          player.updateCurrentIndex(Math.max(0, newQueue.length - 1));
+        }
+      } else {
+        player.stop();
+      }
+    },
+    [player],
+  );
+
+  const isFrequencyInPlaylist = useCallback(
+    (hz: number) => {
+      return player.queue.some(
+        (item) => item.type === "frequency" && item.id === hz,
+      );
+    },
+    [player.queue],
+  );
+
+  const isSoundInPlaylist = useCallback(
+    (soundId: string) => {
+      return player.queue.some(
+        (item) => item.type === "sound" && item.id === soundId,
+      );
+    },
+    [player.queue],
+  );
 
   const startPlaylist = useCallback(() => {
     if (player.queue.length === 0) return;
@@ -99,7 +135,7 @@ export function useUnifiedPlaylistManager() {
     player.setTimeRemaining(totalDurationMs);
 
     // Start playing the queue
-    player.playQueue(player.queue, 'playlist');
+    player.playQueue(player.queue, "playlist");
     setIsPlaylistActive(true);
 
     startTimeRef.current = Date.now();
@@ -132,7 +168,7 @@ export function useUnifiedPlaylistManager() {
   }, [player]);
 
   const toggleLoop = useCallback(() => {
-    setLoopEnabled(prev => !prev);
+    setLoopEnabled((prev) => !prev);
   }, []);
 
   // Timer management
@@ -146,7 +182,8 @@ export function useUnifiedPlaylistManager() {
     }
 
     timerRef.current = setInterval(() => {
-      const totalElapsed = elapsedBeforePauseRef.current + (Date.now() - startTimeRef.current);
+      const totalElapsed =
+        elapsedBeforePauseRef.current + (Date.now() - startTimeRef.current);
       const remaining = player.totalDuration - totalElapsed;
 
       if (remaining <= 0) {
@@ -159,7 +196,10 @@ export function useUnifiedPlaylistManager() {
       const itemDuration = player.totalDuration / player.queue.length;
       const currentItemIndex = Math.floor(totalElapsed / itemDuration);
 
-      if (currentItemIndex !== player.currentIndex && currentItemIndex < player.queue.length) {
+      if (
+        currentItemIndex !== player.currentIndex &&
+        currentItemIndex < player.queue.length
+      ) {
         player.updateCurrentIndex(currentItemIndex);
       }
     }, 100);
@@ -173,10 +213,21 @@ export function useUnifiedPlaylistManager() {
 
   // Handle loop
   useEffect(() => {
-    if (loopEnabled && !player.isPlaying && isPlaylistActive && player.timeRemaining <= 0) {
+    if (
+      loopEnabled &&
+      !player.isPlaying &&
+      isPlaylistActive &&
+      player.timeRemaining <= 0
+    ) {
       startPlaylist();
     }
-  }, [loopEnabled, player.isPlaying, isPlaylistActive, player.timeRemaining, startPlaylist]);
+  }, [
+    loopEnabled,
+    player.isPlaying,
+    isPlaylistActive,
+    player.timeRemaining,
+    startPlaylist,
+  ]);
 
   return {
     playlist,

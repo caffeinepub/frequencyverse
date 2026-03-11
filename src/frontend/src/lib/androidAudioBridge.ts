@@ -18,10 +18,10 @@ declare global {
  */
 export function isAvailable(): boolean {
   return (
-    typeof window !== 'undefined' &&
-    typeof window.AndroidAudio === 'object' &&
+    typeof window !== "undefined" &&
+    typeof window.AndroidAudio === "object" &&
     window.AndroidAudio !== null &&
-    typeof window.AndroidAudio.playSound === 'function'
+    typeof window.AndroidAudio.playSound === "function"
   );
 }
 
@@ -38,7 +38,7 @@ export function play(soundId: string): boolean {
     window.AndroidAudio!.playSound!(soundId);
     return true;
   } catch (error) {
-    console.warn('[AndroidAudioBridge] play failed, fallback to web:', error);
+    console.warn("[AndroidAudioBridge] play failed, fallback to web:", error);
     return false;
   }
 }
@@ -51,9 +51,9 @@ export function play(soundId: string): boolean {
 export function stop(soundId: string): boolean {
   // Check if bridge exists and stopSound method is available
   if (
-    typeof window === 'undefined' ||
+    typeof window === "undefined" ||
     !window.AndroidAudio ||
-    typeof window.AndroidAudio.stopSound !== 'function'
+    typeof window.AndroidAudio.stopSound !== "function"
   ) {
     return false;
   }
@@ -64,7 +64,7 @@ export function stop(soundId: string): boolean {
   } catch (error) {
     // Catch any runtime errors (method signature mismatch, etc.)
     // Never let this crash the React app
-    console.warn('[AndroidAudioBridge] stop failed, ignored:', error);
+    console.warn("[AndroidAudioBridge] stop failed, ignored:", error);
     return false;
   }
 }

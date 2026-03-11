@@ -1,5 +1,9 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { Language, translations, Translations } from '../lib/translations';
+import { type ReactNode, createContext, useContext, useState } from "react";
+import {
+  type Language,
+  type Translations,
+  translations,
+} from "../lib/translations";
 
 interface LanguageContextType {
   language: Language;
@@ -7,10 +11,12 @@ interface LanguageContextType {
   t: Translations;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LanguageContext = createContext<LanguageContextType | undefined>(
+  undefined,
+);
 
-const LANGUAGE_STORAGE_KEY = 'frequencyverse-language';
-const DEFAULT_LANGUAGE: Language = 'tr';
+const LANGUAGE_STORAGE_KEY = "frequencyverse-language";
+const DEFAULT_LANGUAGE: Language = "tr";
 
 // Safe localStorage access with fallback
 function getStoredLanguage(): Language {
@@ -20,20 +26,32 @@ function getStoredLanguage(): Language {
       return stored as Language;
     }
   } catch (error) {
-    console.warn('⚠️ [LANGUAGE] Failed to read from localStorage:', error);
+    console.warn("⚠️ [LANGUAGE] Failed to read from localStorage:", error);
   }
   return DEFAULT_LANGUAGE;
 }
 
 function isValidLanguage(value: string): boolean {
-  return ['tr', 'en', 'de', 'fr', 'es', 'it', 'pt', 'ru', 'ar', 'zh', 'ja'].includes(value);
+  return [
+    "tr",
+    "en",
+    "de",
+    "fr",
+    "es",
+    "it",
+    "pt",
+    "ru",
+    "ar",
+    "zh",
+    "ja",
+  ].includes(value);
 }
 
 function saveLanguage(lang: Language): void {
   try {
     localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
   } catch (error) {
-    console.warn('⚠️ [LANGUAGE] Failed to write to localStorage:', error);
+    console.warn("⚠️ [LANGUAGE] Failed to write to localStorage:", error);
   }
 }
 
@@ -57,7 +75,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 export function useLanguage() {
   const context = useContext(LanguageContext);
   if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
+    throw new Error("useLanguage must be used within a LanguageProvider");
   }
   return context;
 }

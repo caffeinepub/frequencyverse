@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { type ReactNode, createContext, useContext, useState } from "react";
 
 interface VisualizationContextType {
   isFullScreen: boolean;
@@ -6,26 +6,17 @@ interface VisualizationContextType {
   setFullScreen: (enabled: boolean) => void;
 }
 
-const VisualizationContext = createContext<VisualizationContextType | undefined>(undefined);
+const VisualizationContext = createContext<
+  VisualizationContextType | undefined
+>(undefined);
 
-const FULLSCREEN_STORAGE_KEY = 'frequencyverse-visualization-fullscreen';
-
-// Safe localStorage access with fallback
-function getStoredFullScreen(): boolean {
-  try {
-    const stored = localStorage.getItem(FULLSCREEN_STORAGE_KEY);
-    return stored === 'true';
-  } catch (error) {
-    console.warn('⚠️ [VISUALIZATION] Failed to read from localStorage:', error);
-    return false;
-  }
-}
+const FULLSCREEN_STORAGE_KEY = "frequencyverse-visualization-fullscreen";
 
 function saveFullScreen(enabled: boolean): void {
   try {
     localStorage.setItem(FULLSCREEN_STORAGE_KEY, String(enabled));
   } catch (error) {
-    console.warn('⚠️ [VISUALIZATION] Failed to write to localStorage:', error);
+    console.warn("⚠️ [VISUALIZATION] Failed to write to localStorage:", error);
   }
 }
 
@@ -44,7 +35,9 @@ export function VisualizationProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <VisualizationContext.Provider value={{ isFullScreen, toggleFullScreen, setFullScreen }}>
+    <VisualizationContext.Provider
+      value={{ isFullScreen, toggleFullScreen, setFullScreen }}
+    >
       {children}
     </VisualizationContext.Provider>
   );
@@ -53,7 +46,9 @@ export function VisualizationProvider({ children }: { children: ReactNode }) {
 export function useVisualization() {
   const context = useContext(VisualizationContext);
   if (context === undefined) {
-    throw new Error('useVisualization must be used within a VisualizationProvider');
+    throw new Error(
+      "useVisualization must be used within a VisualizationProvider",
+    );
   }
   return context;
 }
